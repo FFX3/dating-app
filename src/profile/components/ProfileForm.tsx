@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { View, TextInput, Text, Button } from 'react-native'
+import { View, Button } from 'react-native'
 import ProfileImageGallery from '../components/ProfileImageGallery'
+import { TextField } from '@mui/material'
 
 export default function ProfileForm({ navigation }){
     const [name, setName] = useState('Justin')
@@ -17,8 +18,8 @@ export default function ProfileForm({ navigation }){
         }}>
             <ProfileImageGallery />
             <Button title='edit gallery' onPress={()=>{navigation.navigate('Edit Gallery')}} />
-            <TextInput value={name} onChange={setName}/>
-            <TextInput value={bio} onChange={setBio}/>
+            <TextField variant='outlined' required value={name} onChange={(e)=>setName(e.target.value)} />
+            <TextField variant='outlined' required value={bio} onChange={(e)=>setBio(e.target.value)} />
             <Button title='save' onPress={save}/>
         </View>
     )
