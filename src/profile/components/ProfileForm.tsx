@@ -1,14 +1,19 @@
 import React, { useState } from 'react'
 import { View, Button } from 'react-native'
 import ProfileImageGallery from '../components/ProfileImageGallery'
-import { TextField } from '@mui/material'
+import { TextInput } from 'react-native-paper'
+import { useProfile } from '../contexts/profile'
 
 export default function ProfileForm({ navigation }){
-    const [name, setName] = useState('Justin')
-    const [bio, setBio] = useState('I built this app')
+    const { profile, saveProfile } = useProfile()
+    const [name, setName] = useState(profile?.name)
+    const [bio, setBio] = useState(profile?.bio)
 
     function save(){
-        // save name and bio
+        saveProfile({
+            name,
+            bio
+        })
     }
 
     return (
@@ -18,8 +23,8 @@ export default function ProfileForm({ navigation }){
         }}>
             <ProfileImageGallery />
             <Button title='edit gallery' onPress={()=>{navigation.navigate('Edit Gallery')}} />
-            <TextField variant='outlined' required value={name} onChange={(e)=>setName(e.target.value)} />
-            <TextField variant='outlined' required value={bio} onChange={(e)=>setBio(e.target.value)} />
+            <TextInput value={name} onChange={(text)=>setName(text)} />
+            <TextInput  value={bio} onChange={(text)=>setBio(text)} />
             <Button title='save' onPress={save}/>
         </View>
     )
