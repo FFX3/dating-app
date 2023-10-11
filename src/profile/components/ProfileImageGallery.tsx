@@ -38,6 +38,7 @@ const styles = StyleSheet.create({
         width,
         height: height * 0.6,
         alignItems: 'center',
+        backgroundColor: 'black',
     },
 
     image: {

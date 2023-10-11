@@ -1,6 +1,7 @@
 import React from 'react'
 import { ScrollView, Button, Text, Image, View } from 'react-native';
 import { useProfile } from '../contexts/profile';
+import EditableProfileImageGallery from '../components/EditableProfileImageGallery';
 
 export function EditGalleryScreen({ navigation }) {
     const { profile: { gallery } } = useProfile()
@@ -13,10 +14,9 @@ export function EditGalleryScreen({ navigation }) {
         console.log(images)
 
     return (
-        <ScrollView>
-            <View style={{ flex: 1, backgroundColor: 'black', alignItems: 'center' }}>
-                <Button title='save' onPress={save} />
-            </View>
-        </ScrollView>
+        <View style={{ gap: 20, alignItems: 'center' }}>
+            <EditableProfileImageGallery />
+            <Button title='save' onPress={save} />
+        </View>
     )
 }

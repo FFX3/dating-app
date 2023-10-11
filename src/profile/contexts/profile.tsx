@@ -36,12 +36,51 @@ export function ProfileContextProvider({ children }){
         })
     }
 
+    function addImage(uri: string){
+        console.log(uri)
+       setProfile({
+            ...profile,
+            gallery: [
+                ...profile.gallery,
+                uri,
+            ]
+        }) 
+    }
+
+    function deleteImage(deleteIndex: number){
+       setProfile({
+            ...profile,
+            gallery: profile.gallery.reduce((carry, uri, index)=>{
+                if(index==deleteIndex) return carry
+                carry.push(uri)
+                return carry
+            }, [])
+        }) 
+    }
+
+    function replaceImage(replacementIndex: number, replacementUri: string){
+       setProfile({
+            ...profile,
+            gallery: profile.gallery.reduce((carry, uri, index)=>{
+                if(index==replacementIndex) {
+                    carry.push(replacementUri)
+                } else {
+                    carry.push(uri)
+                }
+                return carry
+            }, [])
+        }) 
+    }
+
 
     return <profileContext.Provider value={{
             profile,
             login,
             logout,
             saveProfile,
+            addImage,
+            deleteImage,
+            replaceImage,
         }}>
         { children }
     </profileContext.Provider> 
