@@ -1,7 +1,10 @@
 {
+    "onboarded": true,
     "name": "Justin McIntyre",
     "email": "justinmcintyre42@gmail.com",
     "bio": "the developer of this app",
+    "sex": "m",
+    "interested_in": "f",
     "gallery": [
         "https://media.4-paws.org/b/8/d/5/b8d5441fec6b84e9c3cba899549b84bb0f193fff/VIER%20PFOTEN_2019-07-18_013-2890x2000.jpg",
         "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Anas_platyrhynchos_male_female_quadrat.jpg/800px-Anas_platyrhynchos_male_female_quadrat.jpg",

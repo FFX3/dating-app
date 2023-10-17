@@ -1,7 +1,6 @@
-import AvailabilityNavigator from '../src/availabilities/navigation/AvailabilityNavigator'
 import AuthNavigator from '../src/login/navigation/AuthNavigator';
-import ProfileNavigator from '../src/profile/navigation/ProfileNavigator';
 import { useProfile } from './profile/contexts/profile';
+import RootNavigator from './root/navigation/RootNavigatior';
 
 export default function Main() {
     const { profile } = useProfile()
@@ -9,6 +8,6 @@ export default function Main() {
         return <AuthNavigator/>
 
     return (
-       <ProfileNavigator />
+       <RootNavigator />
     );
 }

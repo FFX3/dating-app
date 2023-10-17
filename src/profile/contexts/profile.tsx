@@ -5,8 +5,11 @@ import fakeProfile from '../../../fake-data/user.json'
 type Profile = {
     name: String;
     bio: String;
+    sex: String;
+    interested_in: String[];
     email: String;
     gallery: String[];
+    onboarded: boolean;
 }
 
 const profileContext = createContext(null)
@@ -72,6 +75,13 @@ export function ProfileContextProvider({ children }){
         }) 
     }
 
+    function markOnboarded(){
+        setProfile({
+            ...profile,
+            onboarded: true,
+        })
+    }
+
 
     return <profileContext.Provider value={{
             profile,
@@ -81,6 +91,7 @@ export function ProfileContextProvider({ children }){
             addImage,
             deleteImage,
             replaceImage,
+            markOnboarded,
         }}>
         { children }
     </profileContext.Provider> 
