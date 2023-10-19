@@ -92,7 +92,7 @@ export function MatcherScreen(){
         </View>
         <View style={{ flex: 1 }}>
             { getQueue().map((profile, index)=>{
-                return <ProfileCard
+                return <SwipableCard
                     opacity={nextCardOpacity}
                     scale={nextCardScale}
                     key={profile.id}
@@ -112,7 +112,7 @@ export function MatcherScreen(){
     </View>
 }
 
-export default function ProfileCard(
+export default function SwipableCard(
     { 
         profile,
         swipable=false,
@@ -203,15 +203,19 @@ export default function ProfileCard(
                     NOPE
                     </Text>
                 </Animated.View>
-                <Gallery
-                    gallery={profile.gallery}
+                <ProfileCard
+                    profile={profile}
                 />
             </Animated.View>
     )
 }
 
-function Gallery({ gallery }){
+function ProfileCard({ profile } : { profile: PublicProfile }){
     const [index, setIndex] = useState(0)
+
+    const { gallery } = profile
+
+    console.log(gallery.length)
     
     return (
         <View
@@ -231,14 +235,20 @@ function Gallery({ gallery }){
                     flexDirection: 'row',
                 }}>
                     <Pressable
-                        onPress={()=>console.log('left')}
+                        onPress={()=>{
+                            console.log('left', index)
+                            setIndex(Math.max(index-1, 0))
+                        }}
                         style={{
                             flex: 1,
                         }}
                     >
                     </Pressable>
                     <Pressable
-                        onPress={()=>console.log('right')}
+                        onPress={()=>{
+                            console.log('right', index)
+                            setIndex(Math.min(index+1, gallery.length-1))
+                        }}
                         style={{
                             flex: 1,
                         }}
@@ -253,13 +263,30 @@ function Gallery({ gallery }){
                 >
                 </Pressable>
             </View>
-        <Image
-            source={{ uri: gallery[index] }}
-            style={styles.image}
-            resizeMode='cover'
+        <Gallery
+            gallery={profile.gallery}
+            index={index}
         />
         </View>
     )
+}
+
+function Gallery({ gallery, index }: { gallery: String[], index: number }) {
+    return (<>
+        {gallery.map((uri, _index)=>(
+            <Image
+                key={_index}
+                source={{ uri: gallery[_index] }}
+                style={[
+                    styles.image,
+                    {
+                        display: index == _index ? null : "none",
+                    }
+                ]}
+                resizeMode='cover'
+            />
+        ))}
+    </>)
 }
 
 const styles = StyleSheet.create({
