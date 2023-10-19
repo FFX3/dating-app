@@ -5,6 +5,7 @@ import { StyleSheet, Text, View, Dimensions, Image, Animated, PanResponder,
 PanResponderInstance, 
 TouchableOpacity,
 Pressable} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height
 const SCREEN_WIDTH = Dimensions.get('window').width
@@ -261,6 +262,22 @@ function ProfileCard({ profile } : { profile: PublicProfile }){
                         flex: 1,
                     }}
                 >
+                    <LinearGradient
+                        style={styles.profile_container}
+                        colors={['transparent', 'rgba(0,0,0,0.8)']}
+                    >
+                    <Text
+                        style={styles.profile_name}
+                    >
+                        {profile.name}
+                    </Text>
+                    <Text
+                        numberOfLines={3}
+                        style={styles.profile_bio}
+                    >
+                        {profile.bio}
+                    </Text>
+                    </LinearGradient>
                 </Pressable>
             </View>
         <Gallery
@@ -290,6 +307,22 @@ function Gallery({ gallery, index }: { gallery: String[], index: number }) {
 }
 
 const styles = StyleSheet.create({
+    profile_name: {
+        color: 'white',
+        fontSize: 42,
+        paddingBottom: 10,
+    },
+
+    profile_bio: {
+        color: 'white',
+        fontSize: 20,
+    },
+
+    profile_container: {
+        flex: 1,
+        padding: 20,
+        borderRadius: 20,
+    },
 
     image: {
         width: '100%',
