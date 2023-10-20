@@ -9,7 +9,8 @@ import AvailabilityNavigator from '../../availabilities/navigation/AvailabilityN
 import { MatcherScreen } from '../../matcher/screens/matcherScreen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ProfileScreen } from '../../matcher/screens/profileScreen';
+import { ViewProfileScreen } from '../../profile/screens/ViewProfileScreen';
+import { ContactsScreen } from '../../messager/screens/ContactsSceen';
 
 const AccountStack = createNativeStackNavigator()
 
@@ -18,6 +19,12 @@ function AccountSection(){
         <AccountStack.Screen name="Edit Profile" component={EditProfileScreen}/>
         <AccountStack.Screen name="Edit Gallery" component={EditGalleryScreen}/>
         <AccountStack.Screen name="Availabilites" component={AvailabilityNavigator}/>
+        <MatcherStack.Group screenOptions={{ 
+            headerShown: false,
+            presentation: 'modal',
+        }}>
+            <MatcherStack.Screen name="Preview" component={ViewProfileScreen}/>
+        </MatcherStack.Group>
     </AccountStack.Navigator>
 }
 
@@ -31,9 +38,17 @@ function MatcherSection(){
     >
         <MatcherStack.Screen name="Queue" component={MatcherScreen}/>
         <MatcherStack.Group screenOptions={{ presentation: 'modal' }}>
-            <MatcherStack.Screen name="Profile" component={ProfileScreen}/>
+            <MatcherStack.Screen name="Profile" component={ViewProfileScreen}/>
         </MatcherStack.Group>
     </MatcherStack.Navigator>
+}
+
+const MessagerStack = createNativeStackNavigator()
+
+function MessagerSection() {
+    return <MessagerStack.Navigator>
+       <MessagerStack.Screen name='Contacts' component={ContactsScreen} /> 
+    </MessagerStack.Navigator>
 }
 
 
@@ -60,6 +75,7 @@ export default function RootNavigator(){
         >
             <Tab.Screen name='Account' component={AccountSection} />
             <Tab.Screen name="Matcher" component={MatcherSection}/>
+            <Tab.Screen name="Messager" component={MessagerSection}/>
         </Tab.Navigator>
         </SafeAreaProvider>
     )
