@@ -6,8 +6,9 @@ PanResponderInstance,
 TouchableOpacity,
 Pressable} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 
-const SCREEN_HEIGHT = Dimensions.get('window').height
+const SCREEN_HEIGHT = Dimensions.get('window').height - 50
 const SCREEN_WIDTH = Dimensions.get('window').width
 
 
@@ -216,6 +217,8 @@ function ProfileCard({ profile } : { profile: PublicProfile }){
 
     const { gallery } = profile
 
+    const navigation = useNavigation()
+
     console.log(gallery.length)
     
     return (
@@ -257,7 +260,13 @@ function ProfileCard({ profile } : { profile: PublicProfile }){
                     </Pressable>
                 </View>
                 <Pressable
-                    onPress={()=>console.log('expand')}
+                    onPress={()=>{
+                        console.log('expand')
+                        navigation.navigate('Matcher', {
+                            screen: 'Profile',
+                            params: { profile }
+                        })
+                    }}
                     style={{
                         flex: 1,
                     }}

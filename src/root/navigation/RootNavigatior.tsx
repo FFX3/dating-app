@@ -1,5 +1,5 @@
 import React from 'react'
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { EditProfileScreen } from '../../profile/screens/EditProfileScreen';
 import { EditGalleryScreen } from '../../profile/screens/EditGalleryScreen';
 import { OnboardingEditGalleryScreen } from '../../profile/screens/OnboardingGalleryEdit'
@@ -7,8 +7,37 @@ import { OnboardingScreen } from '../../profile/screens/OnboardingScreen';
 import { useProfile } from '../../profile/contexts/profile';
 import AvailabilityNavigator from '../../availabilities/navigation/AvailabilityNavigator';
 import { MatcherScreen } from '../../matcher/screens/matcherScreen';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ProfileScreen } from '../../matcher/screens/profileScreen';
 
-const Stack = createNativeStackNavigator()
+const AccountStack = createNativeStackNavigator()
+
+function AccountSection(){
+    return <AccountStack.Navigator>
+        <AccountStack.Screen name="Edit Profile" component={EditProfileScreen}/>
+        <AccountStack.Screen name="Edit Gallery" component={EditGalleryScreen}/>
+        <AccountStack.Screen name="Availabilites" component={AvailabilityNavigator}/>
+    </AccountStack.Navigator>
+}
+
+const MatcherStack = createNativeStackNavigator()
+
+function MatcherSection(){
+    return <MatcherStack.Navigator
+        screenOptions={{
+            headerShown: false
+        }}
+    >
+        <MatcherStack.Screen name="Queue" component={MatcherScreen}/>
+        <MatcherStack.Group screenOptions={{ presentation: 'modal' }}>
+            <MatcherStack.Screen name="Profile" component={ProfileScreen}/>
+        </MatcherStack.Group>
+    </MatcherStack.Navigator>
+}
+
+
+const Tab = createBottomTabNavigator()
 
 export default function RootNavigator(){
     const { profile: { onboarded }, markOnboarded } = useProfile()
@@ -22,18 +51,16 @@ export default function RootNavigator(){
     }
 
     return (
-        <Stack.Navigator 
+        <SafeAreaProvider>
+        <Tab.Navigator 
             screenOptions={{
                 headerShown: false
             }}
             initialRouteName={ onboarded ? 'Matcher' : 'Onboarding' }
         >
-            <Stack.Screen name="Edit Profile" component={EditProfileScreen}/>
-            <Stack.Screen name="Edit Gallery" component={EditGalleryScreen}/>
-            <Stack.Screen name="Onboarding" component={OnboardingScreen}/>
-            <Stack.Screen name="Create Your Gallery" component={OnboardingEditGalleryScreen}/>
-            <Stack.Screen name="Availabilites" component={AvailabilityNavigator}/>
-            <Stack.Screen name="Matcher" component={MatcherScreen}/>
-        </Stack.Navigator>
+            <Tab.Screen name='Account' component={AccountSection} />
+            <Tab.Screen name="Matcher" component={MatcherSection}/>
+        </Tab.Navigator>
+        </SafeAreaProvider>
     )
 }
