@@ -1,15 +1,28 @@
 import { FlatList, StyleSheet, View } from 'react-native'
-import { useMessager } from '../contexts/messager'
+import { useMessager, Contact } from '../contexts/messager'
 import { Text } from 'react-native'
+import { Pressable } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
 
 export function ContactsScreen() {
     const { selectContacts } = useMessager()
+    const navigation = useNavigation()
+    const contacts = selectContacts()
+
     return (
         <FlatList
-            data={selectContacts()}
-            renderItem={({ item })=><View style={styles.contact_row}>
+            data={contacts}
+            renderItem={({ item }: { item: Contact })=><Pressable 
+                style={styles.contact_row}
+                onPress={()=>{
+                    navigation.navigate('Messager', {
+                        screen: 'Thread',
+                        params: { profile: item.profile }
+                    })
+                }}
+            >
                 <Text>{ item.profile.name }</Text>
-            </View>}
+            </Pressable>}
             ItemSeparatorComponent={()=><View style={{
                 height: 2,
                 backgroundColor: 'grey',

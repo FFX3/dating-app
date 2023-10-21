@@ -11,6 +11,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ViewProfileScreen } from '../../profile/screens/ViewProfileScreen';
 import { ContactsScreen } from '../../messager/screens/ContactsSceen';
+import { ThreadScreen } from '../../messager/screens/ThreadScreen';
+import { Pressable, Text } from 'react-native';
 
 const AccountStack = createNativeStackNavigator()
 
@@ -48,6 +50,31 @@ const MessagerStack = createNativeStackNavigator()
 function MessagerSection() {
     return <MessagerStack.Navigator>
        <MessagerStack.Screen name='Contacts' component={ContactsScreen} /> 
+       <MessagerStack.Screen 
+            options={
+                ({ route, navigation }) => ({ 
+                    title: route.params.profile.name ,
+                    headerRight: ()=><Pressable
+                        onPress={()=>{
+                            navigation.navigate('Messager', {
+                                screen: 'ContactProfile',
+                                params: { profile: route.params.profile }
+                            })
+                        }}
+                    >
+                        <Text>Profile</Text>
+                    </Pressable>
+                })
+            }
+            name='Thread' 
+            component={ThreadScreen} 
+        /> 
+        <MatcherStack.Group screenOptions={{ 
+            presentation: 'modal',
+            headerShown: false
+        }}>
+            <MatcherStack.Screen name="ContactProfile" component={ViewProfileScreen}/>
+        </MatcherStack.Group>
     </MessagerStack.Navigator>
 }
 

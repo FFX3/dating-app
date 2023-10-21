@@ -49,6 +49,7 @@ function messageReducer(
             messages: [],
             profile: payload.profile,
         }
+        return { ...state }
     }
 
     if(
@@ -60,6 +61,7 @@ function messageReducer(
             sender: true,
             contents: payload.message
         }) 
+        return { ...state }
     }
 
     if(
@@ -71,6 +73,7 @@ function messageReducer(
             sender: false,
             contents: payload.message
         }) 
+        return { ...state }
     }
 
     if(
@@ -78,7 +81,8 @@ function messageReducer(
         && !!payload?.filter.profile_id 
         && !!payload.messages
     ){
-        state[payload.profile.id].messages = payload.messages
+        state[payload.filter.profile_id].messages = payload.messages
+        return { ...state }
     }
 
     return state
