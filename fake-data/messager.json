@@ -11,8 +11,8 @@
             ]
         },
         messages: [
-            { sender: true, contents: "hi" },
             { sender: false, contents: "hello" },
+            { sender: true, contents: "hi" },
         ]
     },
 
