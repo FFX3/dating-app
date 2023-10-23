@@ -51,13 +51,13 @@ function messageReducer(
         }
         return { ...state }
     }
-
+    console.log(type, payload)
     if(
         type == 'send_message' 
         && !!payload?.filter.profile_id 
         && !!payload.message
     ){
-        state[payload.profile.id].messages.push({
+        state[payload.filter.profile_id].messages.push({
             sender: true,
             contents: payload.message
         }) 
@@ -147,8 +147,8 @@ export function MessagerContextProvider({ children }){
         })
     }
 
-    function selectMessages(contact_profile_id: string){
-        return messager[contact_profile_id].messages
+    function selectMessages(contact_profile_id: string): Message[] {
+        return messager[contact_profile_id].messages ?? []
     }
 
     function selectContacts(){
