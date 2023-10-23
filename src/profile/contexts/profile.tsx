@@ -26,6 +26,11 @@ export function ProfileContextProvider({ children }){
         setProfile(fakeProfile)
     }
 
+    function register(email, password){
+        console.log(email, password)
+        setProfile(fakeProfile)
+    }
+
     function logout(){
         setProfile(null)
     }
@@ -92,6 +97,7 @@ export function ProfileContextProvider({ children }){
             deleteImage,
             replaceImage,
             markOnboarded,
+            register,
         }}>
         { children }
     </profileContext.Provider> 

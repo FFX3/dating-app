@@ -6,18 +6,7 @@ import { MatcherContextProvider } from './src/matcher/contexts/matcher';
 import { MessagerContextProvider } from './src/messager/contexts/messager';
 
 export default function App() {
-    console.log('context re-render')
     return (
-        <MessagerContextProvider>
-            <ProfileContextProvider>
-                <AvailabilityContextProvider>
-                    <MatcherContextProvider>
-                        <NavigationContainer>
-                            <Main/>
-                        </NavigationContainer>
-                    </MatcherContextProvider>
-                </AvailabilityContextProvider>
-            </ProfileContextProvider>
-        </MessagerContextProvider>
+        <Main/>
     );
 }

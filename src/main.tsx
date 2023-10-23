@@ -1,13 +1,19 @@
-import AuthNavigator from '../src/login/navigation/AuthNavigator';
-import { useProfile } from './profile/contexts/profile';
+import { AvailabilityContextProvider } from './availabilities/contexts/AvailabilityContext';
+import { MatcherContextProvider } from './matcher/contexts/matcher';
+import { MessagerContextProvider } from './messager/contexts/messager';
+import { ProfileContextProvider, useProfile } from './profile/contexts/profile';
 import RootNavigator from './root/navigation/RootNavigatior';
 
 export default function Main() {
-    const { profile } = useProfile()
-    if(!profile)
-        return <AuthNavigator/>
-
     return (
-       <RootNavigator />
+        <MessagerContextProvider>
+            <ProfileContextProvider>
+                <AvailabilityContextProvider>
+                    <MatcherContextProvider>
+                       <RootNavigator />
+                    </MatcherContextProvider>
+                </AvailabilityContextProvider>
+            </ProfileContextProvider>
+        </MessagerContextProvider>
     );
 }
