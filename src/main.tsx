@@ -1,4 +1,5 @@
 import { AvailabilityContextProvider } from './availabilities/contexts/AvailabilityContext';
+import { ExperienceContextProvider } from './interests/contexts/experience';
 import { MatcherContextProvider } from './matcher/contexts/matcher';
 import { MessagerContextProvider } from './messager/contexts/messager';
 import { ProfileContextProvider, useProfile } from './profile/contexts/profile';
@@ -10,7 +11,9 @@ export default function Main() {
             <ProfileContextProvider>
                 <AvailabilityContextProvider>
                     <MatcherContextProvider>
-                       <RootNavigator />
+                        <ExperienceContextProvider>
+                            <RootNavigator />
+                        </ExperienceContextProvider>
                     </MatcherContextProvider>
                 </AvailabilityContextProvider>
             </ProfileContextProvider>

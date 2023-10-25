@@ -10,7 +10,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ViewProfileScreen } from '../../profile/screens/ViewProfileScreen';
 import { ContactsScreen } from '../../messager/screens/ContactsSceen';
 import { ThreadScreen } from '../../messager/screens/ThreadScreen';
-import { Pressable, Text } from 'react-native';
+import { Pressable, SafeAreaView, Text, View } from 'react-native';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { DiscoverExperiencesScreen } from '../../interests/screens/DiscoverExperiencesScreen';
+import { YourInterestsScreen } from '../../interests/screens/YourInterestsScreen';
 
 const AccountStack = createNativeStackNavigator()
 
@@ -76,6 +79,20 @@ function MessagerSection() {
     </MessagerStack.Navigator>
 }
 
+const ExperienceTab = createMaterialTopTabNavigator()
+
+function ExperienceSection() {
+    return <SafeAreaView style={{
+            height: '100%'
+        }}
+        >
+        <ExperienceTab.Navigator>
+            <ExperienceTab.Screen name='Discover' component={DiscoverExperiencesScreen} />
+            <ExperienceTab.Screen name='Your Interests' component={YourInterestsScreen} />
+        </ExperienceTab.Navigator>
+    </SafeAreaView>
+}
+
 
 const Tab = createBottomTabNavigator()
 
@@ -101,6 +118,7 @@ export default function MainNavigator(){
                 <Tab.Screen name='Account' component={AccountSection} />
                 <Tab.Screen name="Matcher" component={MatcherSection}/>
                 <Tab.Screen name="Messager" component={MessagerSection}/>
+                <Tab.Screen name="Experiences" component={ExperienceSection}/>
             </Tab.Navigator>
         </SafeAreaProvider>
     )

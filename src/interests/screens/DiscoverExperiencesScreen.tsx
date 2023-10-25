@@ -1,42 +1,29 @@
-import React, { useState } from 'react'
-import { FlatList, View } from 'react-native'
+import React from 'react'
+import { Button, FlatList, View } from 'react-native'
 import { ExperienceTile } from '../components/ExperienceTile'
-import { FormGroup, FormControlLabel, Switch } from '@mui/material'
+import { Experience, useExperience } from '../contexts/experience'
 
-export function DiscoverExperiencesScreen({ navigation }){
-    //not many filters for now, all interest are in moncton
-    const [includeSelected, setIncludeSelected] = useState(false)
-    
-    const experiences = [
-        { 
-            id: 1,
-            selected: true,
-            name: 'keg',
-        },
-        { 
-            id: 2,
-            selected: false,
-            name: 'tide & boar',
-        },
-        { 
-            id: 3,
-            selected: false,
-            name: 'irish town park',
-        },
-    ]
+export function DiscoverExperiencesScreen(){
+    const { selectUnselectedExperiences, addExperience } = useExperience()
 
     return (
         <View>
-            <FormGroup>
-                <FormControlLabel label='include selected' control={<Switch checked={includeSelected} onChange={((e)=>e.target.checked)}/>} />
-            </FormGroup>
             <FlatList 
-                data={experiences.filter((experience)=>{
-                    if(includeSelected) return true;
-                    return !experience.selected
-                })}
-                renderItem={(row)=><ExperienceTile experience={row.item} />}
-                keyExtractor={(experience)=>experience.id.toString()}
+                data={selectUnselectedExperiences()}
+                renderItem={({ item })=><ExperienceTile 
+                    experience={item} 
+                    action={(experience: Experience )=><Button 
+                            onPress={()=>{addExperience(experience.id)}}
+                            title='Add'
+                        />
+                    }
+                />}
+                keyExtractor={(item)=>{ console.log(item); return item.id}}
+                ItemSeparatorComponent={()=><View style={{
+                    height: 2,
+                    backgroundColor: 'grey',
+                    opacity: 0.5,
+                }}></View>}
             />
         </View>
     )
