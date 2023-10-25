@@ -8,11 +8,11 @@ export default function Main() {
 
     return (
         <NavigationContainer>
-        { !!profile ? 
-           <MainNavigator />
-        : 
-            <AuthenticationNavigator/>
-        }
+            { !!profile ? 
+               <MainNavigator />
+            : 
+                <AuthenticationNavigator/>
+            }
         </NavigationContainer>
     );
 }

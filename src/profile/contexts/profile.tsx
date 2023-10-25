@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { createContext, useContext } from "react";
 import fakeProfile from '../../../fake-data/user.json'
+import { supabase } from '../../utils/supabase'
 
 type Profile = {
     name: String;
@@ -21,17 +22,24 @@ export function useProfile(){
 export function ProfileContextProvider({ children }){
     const [profile, setProfile] = useState<Profile|null>(null)
 
-    function login(email, password){
-        console.log(email, password)
+    async function login(email, password){
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
         setProfile(fakeProfile)
     }
 
-    function register(email, password){
-        console.log(email, password)
+    async function register(email, password){
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+        })
         setProfile(fakeProfile)
     }
 
     function logout(){
+        supabase.auth.signOut()
         setProfile(null)
     }
 
@@ -45,7 +53,6 @@ export function ProfileContextProvider({ children }){
     }
 
     function addImage(uri: string){
-        console.log(uri)
        setProfile({
             ...profile,
             gallery: [
