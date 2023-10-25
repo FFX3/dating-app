@@ -4,7 +4,7 @@ import { Checkbox, RadioButton, TextInput } from 'react-native-paper'
 import { useProfile } from '../contexts/profile'
 import { StyleSheet } from 'react-native'
 
-export default function ProfileForm({ navigation, onSave }){
+export default function ProfileForm({ navigation, onSave, submitAction=false }){
     const { profile, saveProfile } = useProfile()
     const [name, setName] = useState(profile?.name)
     const [bio, setBio] = useState(profile?.bio)
@@ -85,7 +85,11 @@ export default function ProfileForm({ navigation, onSave }){
                         </View>
                     </View>
                 </View>
-                <Button title='save' onPress={save}/>
+                { !!submitAction ?
+                    submitAction()
+                :
+                    <Button title='save' onPress={save}/>
+                }
         </View>
     )
 }

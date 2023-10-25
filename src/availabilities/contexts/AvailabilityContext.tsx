@@ -1,6 +1,7 @@
 import { useState, createContext, useContext } from 'react';
+import snowflake from '../../utils/snowflake';
 
-const availabilityContext = createContext()
+const availabilityContext = createContext(null)
 
 export function useAvailabilities(){
     return useContext(availabilityContext)
@@ -30,21 +31,23 @@ export function AvailabilityContextProvider({ children }){
 
     const [exceptions, setExceptions] = useState([
         {
+            id: "1",
             start: new Date(1598051730000),
             end: new Date()
         }
     ])
 
-    function save(){
-        //save availability
+    function removeException(exception_id: string){
+        setExceptions(exceptions.filter((exception)=>exception.id !== exception_id))
     }
 
-    function saveExceptions(){
-
-    }
-
-    function saveAvailability(){
-
+    function addException(start: Date, end: Date){
+        setExceptions([{
+            id: snowflake.generate(),
+            start,
+            end,
+        },
+        ...exceptions])
     }
 
     const value = {
@@ -56,7 +59,8 @@ export function AvailabilityContextProvider({ children }){
         startSaturday, setStartSaturday, endSaturday, setEndSaturday,
         startSunday, setStartSunday, endSunday, setEndSunday,
         exceptions, setExceptions,
-        save,
+        removeException,
+        addException,
     }
 
     return <availabilityContext.Provider value={value}>{children}</availabilityContext.Provider>

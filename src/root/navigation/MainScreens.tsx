@@ -10,11 +10,13 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ViewProfileScreen } from '../../profile/screens/ViewProfileScreen';
 import { ContactsScreen } from '../../messager/screens/ContactsSceen';
 import { ThreadScreen } from '../../messager/screens/ThreadScreen';
-import { Pressable, SafeAreaView, Text, View } from 'react-native';
+import { Button, Pressable, SafeAreaView, Text, View } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { DiscoverExperiencesScreen } from '../../interests/screens/DiscoverExperiencesScreen';
 import { YourInterestsScreen } from '../../interests/screens/YourInterestsScreen';
 import { ViewExperienceDetailsScreen } from '../../interests/screens/ViewExperienceDetailsScreen';
+import { Profile } from '../../onboarding/screens/Profile';
+import { Availability } from '../../onboarding/screens/Availabilities';
 
 const AccountStack = createNativeStackNavigator()
 
@@ -56,16 +58,15 @@ function MessagerSection() {
             options={
                 ({ route, navigation }) => ({ 
                     title: route.params.profile.name ,
-                    headerRight: ()=><Pressable
+                    headerRight: ()=><Button
                         onPress={()=>{
                             navigation.navigate('Messager', {
                                 screen: 'ContactProfile',
                                 params: { profile: route.params.profile }
                             })
                         }}
-                    >
-                        <Text>Profile</Text>
-                    </Pressable>
+                        title='Profile'
+                    />
                 })
             }
             name='Thread' 
@@ -110,31 +111,44 @@ function ExperienceSection() {
 
 
 const Tab = createBottomTabNavigator()
+const OnboardingStack = createNativeStackNavigator()
 
 export default function MainNavigator(){
     const { profile: { onboarded }, markOnboarded } = useProfile()
 
-    function finishOnboarding(navigation){
-        markOnboarded()
-        navigation.reset({
-            index: 0,
-            routes: [{ name: 'Edit Profile' }]
-        })
-    }
-
     return (
         <SafeAreaProvider>
-            <Tab.Navigator 
-                screenOptions={{
-                    headerShown: false
-                }}
-                initialRouteName={ onboarded ? 'Matcher' : 'Onboarding' }
-            >
-                <Tab.Screen name='Account' component={AccountSection} />
-                <Tab.Screen name="Matcher" component={MatcherSection}/>
-                <Tab.Screen name="Messager" component={MessagerSection}/>
-                <Tab.Screen name="Experiences" component={ExperienceSection}/>
-            </Tab.Navigator>
+            { onboarded ?
+                <Tab.Navigator 
+                    screenOptions={{
+                        headerShown: false
+                    }}
+                >
+                    <Tab.Screen name="Matcher" component={MatcherSection}/>
+                    <Tab.Screen name='Account' component={AccountSection} />
+                    <Tab.Screen name="Messager" component={MessagerSection}/>
+                    <Tab.Screen name="Experiences" component={ExperienceSection}/>
+                </Tab.Navigator>
+            :
+                <OnboardingStack.Navigator>
+                   <OnboardingStack.Screen name='Profile' component={Profile} />
+                   <OnboardingStack.Screen name='Availabilities' component={Availability} options={({ navigation })=>{
+                       return {
+                           headerRight: ()=><Button title='Next' onPress={()=>navigation.navigate('Experiences')} />
+                       }
+                    }}/>
+                   <OnboardingStack.Screen name='Experiences' component={ExperienceSection} options={({ navigation })=>{
+                       return {
+                           headerRight: ()=><Button title='Next' onPress={()=>navigation.navigate('Gallery')} />
+                       }
+                    }}/>
+                   <OnboardingStack.Screen name='Gallery' component={EditGalleryScreen} options={()=>{
+                       return {
+                           headerRight: ()=><Button title='Done' onPress={markOnboarded} />
+                       }
+                    }}/>
+                </OnboardingStack.Navigator>
+            }
         </SafeAreaProvider>
     )
 }

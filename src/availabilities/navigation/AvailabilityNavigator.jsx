@@ -1,15 +1,19 @@
-import { AvailabilityScreen } from '../screens/AvailibilityScreen';
 import { ExceptionsScreen } from '../screens/ExceptionsScreen';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { AvailabilityContextProvider } from '../contexts/AvailabilityContext';
+import { AvailabilitiesScreen } from '../screens/AvailibilitiesScreen';
 
 const Stack = createNativeStackNavigator()
 
-export default function AvailabilityNavigator(){
+export default function AvailabilityNavigator({ header=true }){
     return (
-        <Stack.Navigator initialRouteName='Availability'>
-            <Stack.Screen name="Availability" component={AvailabilityScreen}/>
-            <Stack.Screen name="Exceptions" component={ExceptionsScreen}/>
+        <Stack.Navigator initialRouteName='Availability' screenOptions={{
+            headerShown: header
+        }}>
+            <Stack.Screen name="Availability" component={AvailabilitiesScreen}/>
+            <Stack.Screen name="Exceptions" component={ExceptionsScreen} options={{
+                presentation: 'modal',
+                headerShown: 'true',
+            }}/>
         </Stack.Navigator>
     )
 }
