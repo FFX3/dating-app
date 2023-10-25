@@ -1,11 +1,14 @@
 import React, { FunctionComponent } from 'react'
-import { Text, View } from 'react-native'
+import { Button, Text, View } from 'react-native'
 import { Experience } from '../contexts/experience'
+import { useNavigation } from '@react-navigation/native'
 
 export function ExperienceTile(
     { experience, action } :
     { experience: Experience, action: FunctionComponent }
 ){
+
+    const navigation = useNavigation()
 
     return <View
         style={{
@@ -17,6 +20,21 @@ export function ExperienceTile(
         }}
     >
         <Text>{experience.name}</Text>
-        {action(experience)}
+        <View
+            style={{
+                flexDirection: 'row',
+            }}
+        >
+            {action(experience)}
+            <Button title='Details' 
+                onPress={()=>{
+                    console.log('opening details')
+                    navigation.navigate('Experiences', {
+                            screen: 'Details',
+                            params: { experience }
+                    })
+                }}
+            />
+        </View>
     </View>
 }

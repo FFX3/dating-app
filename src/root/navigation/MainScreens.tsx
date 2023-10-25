@@ -14,6 +14,7 @@ import { Pressable, SafeAreaView, Text, View } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { DiscoverExperiencesScreen } from '../../interests/screens/DiscoverExperiencesScreen';
 import { YourInterestsScreen } from '../../interests/screens/YourInterestsScreen';
+import { ViewExperienceDetailsScreen } from '../../interests/screens/ViewExperienceDetailsScreen';
 
 const AccountStack = createNativeStackNavigator()
 
@@ -80,16 +81,30 @@ function MessagerSection() {
 }
 
 const ExperienceTab = createMaterialTopTabNavigator()
+const ExperienceStack = createNativeStackNavigator()
+
+function ExperienceMainSection() {
+    return <ExperienceTab.Navigator>
+                <ExperienceTab.Screen name='Discover' component={DiscoverExperiencesScreen} />
+                <ExperienceTab.Screen name='Your Interests' component={YourInterestsScreen} />
+            </ExperienceTab.Navigator>
+}
 
 function ExperienceSection() {
     return <SafeAreaView style={{
             height: '100%'
         }}
         >
-        <ExperienceTab.Navigator>
-            <ExperienceTab.Screen name='Discover' component={DiscoverExperiencesScreen} />
-            <ExperienceTab.Screen name='Your Interests' component={YourInterestsScreen} />
-        </ExperienceTab.Navigator>
+        <ExperienceStack.Navigator 
+            screenOptions={{
+                headerShown: false,
+            }}
+        >
+            <ExperienceStack.Screen name='Main' component={ExperienceMainSection} />
+            <ExperienceStack.Group screenOptions={{ presentation: 'modal' }}>
+                <ExperienceStack.Screen name="Details" component={ViewExperienceDetailsScreen}/>
+            </ExperienceStack.Group>
+        </ExperienceStack.Navigator>
     </SafeAreaView>
 }
 
