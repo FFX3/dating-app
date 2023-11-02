@@ -69,7 +69,7 @@ export interface Database {
         }
         Relationships: []
       }
-      availability_exception: {
+      availability_exceptions: {
         Row: {
           availability_id: string
           created_at: string
@@ -93,7 +93,7 @@ export interface Database {
         }
         Relationships: [
           {
-            foreignKeyName: "availability_exception_availability_id_fkey"
+            foreignKeyName: "availability_exceptions_availability_id_fkey"
             columns: ["availability_id"]
             isOneToOne: false
             referencedRelation: "availabilities"
@@ -264,7 +264,13 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_availability_exception: {
+        Args: {
+          _start: string
+          _end: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       has_availability: "profile" | "experience"

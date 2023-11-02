@@ -32,10 +32,10 @@ export function ExceptionsScreen(){
 }
 
 function Exception({ exception }){
-    const { removeException } = useAvailabilities()
+    const { removeException, editException } = useAvailabilities()
 
-    const [start, setStart] = useState(exception.start)
-    const [end, setEnd] = useState(exception.end)
+    const { start, end } = exception
+
     return (
         <View style={{
             flexDirection: 'row',
@@ -44,7 +44,11 @@ function Exception({ exception }){
             borderRadius: 8,
             padding: 20
         }}>
-            <IntervalPicker {...{start, setStart, end, setEnd, mode: 'datetime' }} />
+            <IntervalPicker {...{
+                start, setStart: (start)=>editException({...exception, start}), 
+                end, setEnd: (end)=>editException({...exception, end}), 
+                mode: 'datetime' 
+            }} />
             <Button title='clear' onPress={()=>removeException(exception.id)}/>
         </View>
     )

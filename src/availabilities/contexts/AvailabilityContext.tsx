@@ -83,21 +83,37 @@ export function AvailabilityContextProvider({ children }){
             .maybeSingle()
         if(error) return console.error(error)
         
-        if(!!data){
-            set_start_monday(timeStringToDate(data.start_monday))
-            set_start_tuesday(timeStringToDate(data.start_tuesday))
-            set_start_wednesday(timeStringToDate(data.start_wednesday))
-            set_start_thursday(timeStringToDate(data.start_thursday))
-            set_start_friday(timeStringToDate(data.start_friday))
-            set_start_saturday(timeStringToDate(data.end_saturday))
-            set_start_sunday(timeStringToDate(data.end_sunday))
-            set_end_monday(timeStringToDate(data.end_monday))
-            set_end_tuesday(timeStringToDate(data.end_tuesday))
-            set_end_wednesday(timeStringToDate(data.end_wednesday))
-            set_end_thursday(timeStringToDate(data.end_thursday))
-            set_end_friday(timeStringToDate(data.end_friday))
-            set_end_saturday(timeStringToDate(data.end_saturday))
-            set_end_sunday(timeStringToDate(data.end_sunday))
+        if(!data) return
+
+        set_start_monday(timeStringToDate(data.start_monday))
+        set_start_tuesday(timeStringToDate(data.start_tuesday))
+        set_start_wednesday(timeStringToDate(data.start_wednesday))
+        set_start_thursday(timeStringToDate(data.start_thursday))
+        set_start_friday(timeStringToDate(data.start_friday))
+        set_start_saturday(timeStringToDate(data.end_saturday))
+        set_start_sunday(timeStringToDate(data.end_sunday))
+        set_end_monday(timeStringToDate(data.end_monday))
+        set_end_tuesday(timeStringToDate(data.end_tuesday))
+        set_end_wednesday(timeStringToDate(data.end_wednesday))
+        set_end_thursday(timeStringToDate(data.end_thursday))
+        set_end_friday(timeStringToDate(data.end_friday))
+        set_end_saturday(timeStringToDate(data.end_saturday))
+        set_end_sunday(timeStringToDate(data.end_sunday))
+        {
+            const { data: exceptions, error } = await supabase
+                .from('availability_exceptions')
+                .select()
+                .eq('availability_id', data.id)
+
+            if(error) return console.error(error)
+
+            setExceptions(exceptions.map(exception=>{ 
+                return {
+                    start: new Date(exception.start),
+                    end: new Date(exception.end),
+                    id: exception.id,
+                }
+            }))
         }
     }
 
@@ -132,18 +148,50 @@ export function AvailabilityContextProvider({ children }){
         return data
     }
 
-    function removeException(exception_id: string){
-        setExceptions(exceptions.filter((exception)=>exception.id !== exception_id))
+    async function editException(exception){
+        setExceptions(exceptions.map((_exception)=>{ 
+            if (exception.id !== _exception.id) return _exception
+            return exception
+        }))
+        const { id, start, end } = exception
+        const { data, error } = await supabase.from('availability_exceptions')
+            .update({ start, end })
+            .eq('id', id)
+            .select()
+
+        if(error) console.error(error)
+
+        return data
     }
 
-    function addException(start: Date, end: Date){
-        setExceptions([{
-            id: snowflake.generate(),
+    async function removeException(exception_id: string){
+        setExceptions(exceptions.filter((exception)=>exception.id !== exception_id))
+        const { data, error } = await supabase.from('availability_exceptions')
+            .delete()
+            .eq('id', exception_id)
+
+        if(error) console.error(error)
+
+        return data
+    }
+
+    async function addException(start: Date, end: Date){
+        const { data: exception_id, error } = await supabase
+            .rpc('add_availability_exception', { _end: end, _start: start })
+            .single()
+
+        console.log(exception_id)
+        if(error) console.error(error)
+         
+        const new_exception = {
+            id: exception_id,
             start,
             end,
-        },
-        ...exceptions])
+        }
+        setExceptions([new_exception, ...exceptions])
     }
+
+
 
     const value = {
         start_monday,
@@ -177,6 +225,7 @@ export function AvailabilityContextProvider({ children }){
         exceptions, setExceptions,
         removeException,
         addException,
+        editException,
     }
 
     return <availabilityContext.Provider value={value}>{children}</availabilityContext.Provider>
