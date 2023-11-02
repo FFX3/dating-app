@@ -114,11 +114,11 @@ const Tab = createBottomTabNavigator()
 const OnboardingStack = createNativeStackNavigator()
 
 export default function MainNavigator(){
-    const { profile: { onboarded }, markOnboarded } = useProfile()
+    const { profile, markOnboarded } = useProfile()
 
     return (
         <SafeAreaProvider>
-            { onboarded ?
+            { !!profile?.onboaded ?
                 <Tab.Navigator 
                     screenOptions={{
                         headerShown: false

@@ -1,17 +1,14 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createContext, useContext } from "react";
 import fakeProfile from '../../../fake-data/user.json'
 import { supabase } from '../../utils/supabase'
+import { useLocalTestData } from '../../config'
+import { Database } from '../../../database.types'
+import { useAuth } from "../../auth/authContext";
 
-type Profile = {
-    name: String;
-    bio: String;
-    sex: String;
-    interested_in: String[];
-    email: String;
-    gallery: String[];
-    onboarded: boolean;
-}
+type Gallery = String[];
+
+export type Profile = Database['public']['Tables']['profiles']['Row']
 
 const profileContext = createContext(null)
 
@@ -20,32 +17,60 @@ export function useProfile(){
 }
 
 export function ProfileContextProvider({ children }){
-    const [profile, setProfile] = useState<Profile|null>(null)
+    const { user } = useAuth()
 
-    async function login(email, password){
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-        setProfile(fakeProfile)
+    const [profile, setProfile] = useState<Profile>()
+    const [gallery, setGallery] = useState<Gallery>()
+
+    useEffect(()=>{
+        if(user){
+            console.log(
+                '%%%%%%%%%%%%%%%%%%%%',
+                'fetching profile',
+                '%%%%%%%%%%%%%%%%%%%%',
+            )
+            fetchProfile()
+            fetchGallery()
+        } else {
+            setProfile(undefined)
+            setGallery(undefined)
+        }
+    }, [user?.id])
+    
+    async function fetchProfile(){
+        const { data, error } = await supabase
+            .from('profiles')
+            .select()
+            .eq('user_id', user.id)
+            .limit(1)
+            .single()
+        console.log(data)
+        if(error)
+            console.log('fetchProfile error', error)
+        setProfile(data)
+        return data
     }
 
-    async function register(email, password){
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-        })
-        setProfile(fakeProfile)
+    async function fetchGallery(){
+        const newGallery = []
+        for(let i=0; i<8; i++){
+            const url = supabase.storage
+                .from('profiles')
+                .getPublicUrl(`${user.id}/${i}`)
+            newGallery.push(url)
+        }
+        setGallery(newGallery)
+        return newGallery
     }
 
-    function logout(){
-        supabase.auth.signOut()
-        setProfile(null)
-    }
-
-    function saveProfile(newProfile: Profile){
+    async function saveProfile(newProfile: Profile){
         //api stuff
+        const { data, error } = await supabase
+            .from('profiles')
+            .upsert(newProfile)
+            .select()
         //update app state
+        console.log(error)
         setProfile({
             ...profile,
             ...newProfile,
@@ -53,38 +78,29 @@ export function ProfileContextProvider({ children }){
     }
 
     function addImage(uri: string){
-       setProfile({
-            ...profile,
-            gallery: [
-                ...profile.gallery,
-                uri,
-            ]
-        }) 
+        setGallery([
+            ...gallery,
+            uri
+        ])
     }
 
     function deleteImage(deleteIndex: number){
-       setProfile({
-            ...profile,
-            gallery: profile.gallery.reduce((carry, uri, index)=>{
-                if(index==deleteIndex) return carry
-                carry.push(uri)
-                return carry
-            }, [])
-        }) 
+        setGallery(gallery.reduce((carry, uri, index)=>{
+            if(index==deleteIndex) return carry
+            carry.push(uri)
+            return carry
+        }, []))
     }
 
     function replaceImage(replacementIndex: number, replacementUri: string){
-       setProfile({
-            ...profile,
-            gallery: profile.gallery.reduce((carry, uri, index)=>{
-                if(index==replacementIndex) {
-                    carry.push(replacementUri)
-                } else {
-                    carry.push(uri)
-                }
-                return carry
-            }, [])
-        }) 
+        setGallery(gallery.reduce((carry, uri, index)=>{
+            if(index==replacementIndex) {
+                carry.push(replacementUri)
+            } else {
+                carry.push(uri)
+            }
+            return carry
+        }, []))
     }
 
     function markOnboarded(){
@@ -97,14 +113,11 @@ export function ProfileContextProvider({ children }){
 
     return <profileContext.Provider value={{
             profile,
-            login,
-            logout,
             saveProfile,
             addImage,
             deleteImage,
             replaceImage,
             markOnboarded,
-            register,
         }}>
         { children }
     </profileContext.Provider> 

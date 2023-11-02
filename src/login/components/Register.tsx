@@ -1,13 +1,14 @@
 import React, { useState } from 'react'
-import { useProfile } from '../../profile/contexts/profile'
 import { KeyboardAvoidingView, Platform, View } from 'react-native'
-import { TextInput, Button } from 'react-native-paper'
+import { TextInput, Button, HelperText } from 'react-native-paper'
+import { useAuth } from '../../auth/authContext'
 
 
 export default function RegisterForm(){
-    const { register } = useProfile()
+    const { register, authError } = useAuth()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    
 
 
     return (
@@ -20,12 +21,23 @@ export default function RegisterForm(){
                 gap: 20
             }}
         >
-            <TextInput label='email' value={email}
+            <HelperText type='error' visible={!!authError}>
+                { authError }
+            </HelperText>
+            <TextInput label='Email' value={email}
+                error={!!authError}
+                autoCapitalize='none'
                 onChangeText={text=>setEmail(text)} />
-            <TextInput label='password' value={password}
+            <TextInput label='Password' value={password}
+                error={!!authError}
                 secureTextEntry
                 onChangeText={text=>setPassword(text)} />
-            <Button onPress={()=>{register(email, password)}}>
+            <Button 
+                onPress={()=>{
+                    register(email, password)
+                }}
+                disabled={ email === '' || password === ''}
+            >
                 Register
             </Button>
         </KeyboardAvoidingView>

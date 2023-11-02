@@ -1,35 +1,50 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, Button, Text } from 'react-native'
 import { Checkbox, RadioButton, TextInput } from 'react-native-paper'
-import { useProfile } from '../contexts/profile'
+import { Profile, useProfile } from '../contexts/profile'
 import { StyleSheet } from 'react-native'
 
-export default function ProfileForm({ navigation, onSave, submitAction=false }){
+export default function ProfileForm({ submitAction, submitActionTitle }){
     const { profile, saveProfile } = useProfile()
     const [name, setName] = useState(profile?.name)
     const [bio, setBio] = useState(profile?.bio)
-    const [sex, setSex] = useState(profile?.sex)
+    const [sex, setSex] = useState<Profile['sex']>(profile?.sex)
 
     const [interestedInMales, setInterestedInMales] =
-        useState(profile?.interested_in.includes('m'))
+        useState(profile?.interested_in.includes('male'))
     const [interestedInFemales, setInterestedInFemales] = 
-        useState(profile?.interested_in.includes('f'))
+        useState(profile?.interested_in.includes('female'))
     const [interestedInOther, setInterestedInOther] = 
-        useState(profile?.interested_in.includes('o'))
+        useState(profile?.interested_in.includes('other'))
+
+    useEffect(()=>{
+        if(!profile){ return }
+
+        setName(profile.name)
+        setBio(profile.bio)
+        setSex(profile.sex)
+
+        setInterestedInMales(profile?.interested_in.includes('male'))
+        setInterestedInFemales(profile?.interested_in.includes('female'))
+        setInterestedInOther(profile?.interested_in.includes('other'))
+
+    }, [profile?.user_id])
 
     function save(){
-        const interested_in = []
+        const interested_in: Profile['interested_in'] = []
 
-        if(interestedInMales) interested_in.push('m')
-        if(interestedInFemales) interested_in.push('f')
-        if(interestedInOther) interested_in.push('o')
+        if(interestedInMales) interested_in.push('male')
+        if(interestedInFemales) interested_in.push('female')
+        if(interestedInOther) interested_in.push('other')
 
-        saveProfile({
+        const newProfile = {
             name,
             bio,
+            sex,
             interested_in, 
-        })
-        if(onSave) onSave()
+        }
+        saveProfile(newProfile)
+        if(submitAction) submitAction()
     }
 
     return (
@@ -38,23 +53,23 @@ export default function ProfileForm({ navigation, onSave, submitAction=false }){
             padding: 20,
             gap: 20,
         }}>
-                <TextInput label='Name' value={name} onChange={(text)=>setName(text)} />
-                <TextInput label='Bio' multiline value={bio} onChange={(text)=>setBio(text)} />
+                <TextInput label='Name' value={name} onChangeText={(text)=>setName(text)} />
+                <TextInput label='Bio' multiline value={bio} onChangeText={(text)=>setBio(text)} />
                 <View>
                     <Text>You are:</Text>
                     <RadioButton.Group value={sex} onValueChange={(text)=>setSex(text)} >
                         <View style={styles.radioGroupContainer}>
                             <View style={styles.radioButton}>
                                 <Text>Male</Text>
-                                <RadioButton.Android value='m' />
+                                <RadioButton.Android value='male' />
                             </View>
                             <View style={styles.radioButton}>
                                 <Text>Female</Text>
-                                <RadioButton.Android value='f' />
+                                <RadioButton.Android value='female' />
                             </View>
                             <View style={styles.radioButton}>
                                 <Text>Other</Text>
-                                <RadioButton.Android value='o' />
+                                <RadioButton.Android value='other' />
                             </View>
                         </View>
                     </RadioButton.Group>
@@ -85,11 +100,16 @@ export default function ProfileForm({ navigation, onSave, submitAction=false }){
                         </View>
                     </View>
                 </View>
-                { !!submitAction ?
-                    submitAction()
-                :
-                    <Button title='save' onPress={save}/>
-                }
+                <Button 
+                    title={ submitActionTitle ?? 'Save' } 
+                    onPress={save}
+                    disabled={
+                        name == ''
+                        || bio == ''
+                        || !sex
+                        || !(interestedInMales || interestedInFemales || interestedInOther)
+                    }
+                />
         </View>
     )
 }

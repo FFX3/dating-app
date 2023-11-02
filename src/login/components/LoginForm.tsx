@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
-import { useProfile } from '../../profile/contexts/profile'
-import { KeyboardAvoidingView, Platform, View } from 'react-native'
-import { TextInput, Button } from 'react-native-paper'
+import { KeyboardAvoidingView, Platform } from 'react-native'
+import { TextInput, Button, HelperText } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
+import { useAuth } from '../../auth/authContext'
 
 
 export default function LoginForm(){
-    const { login } = useProfile()
+    const { login, authError } = useAuth()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
 
@@ -22,9 +22,15 @@ export default function LoginForm(){
                 gap: 20
             }}
         >
+            <HelperText type='error' visible={!!authError}>
+                { authError }
+            </HelperText>
             <TextInput label='email' value={email}
+                error={!!authError}
+                autoCapitalize='none'
                 onChangeText={text=>setEmail(text)} />
             <TextInput label='password' value={password}
+                error={!!authError}
                 secureTextEntry
                 onChangeText={text=>setPassword(text)} />
             <Button onPress={()=>login(email, password)}>

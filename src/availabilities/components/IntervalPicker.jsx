@@ -5,10 +5,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 export function IntervalPickerWeekday({ day }){
     const context = useAvailabilities()
 
-    const start = context['start' + day.charAt(0).toUpperCase() + day.slice(1)]
-    const setStart = context['setStart' + day.charAt(0).toUpperCase() + day.slice(1)]
-    const end = context['end' + day.charAt(0).toUpperCase() + day.slice(1)]
-    const setEnd = context['setEnd' + day.charAt(0).toUpperCase() + day.slice(1)]
+    const start = context['start_' + day]
+    const setStart = context['set_start_' + day]
+    const end = context['end_' + day]
+    const setEnd = context['set_end_' + day]
 
     return <IntervalPicker {...{ start, setStart, end, setEnd }}/>
 }
