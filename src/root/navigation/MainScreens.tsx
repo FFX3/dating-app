@@ -118,7 +118,7 @@ export default function MainNavigator(){
 
     return (
         <SafeAreaProvider>
-            { !!profile?.onboaded ?
+            { !!profile?.onboarded ?
                 <Tab.Navigator 
                     screenOptions={{
                         headerShown: false
@@ -131,24 +131,24 @@ export default function MainNavigator(){
                 </Tab.Navigator>
             :
                 <OnboardingStack.Navigator>
-                   <OnboardingStack.Screen name='Profile' component={Profile} />
-                   <OnboardingStack.Screen name='Availabilities' component={Availability} options={({ navigation })=>{
-                       return {
+                    <OnboardingStack.Screen name='Profile' component={Profile} />
+                    <OnboardingStack.Screen name='Availabilities' component={Availability} options={({ navigation })=>{
+                        return {
                            headerRight: ()=><Button title='Next' onPress={()=>navigation.navigate('Experiences')} />
-                       }
+                        }
                     }}/>
-                   <OnboardingStack.Screen name='Experiences' component={ExperienceSection} options={({ navigation })=>{
-                       return {
+                    <OnboardingStack.Screen name='Experiences' component={ExperienceSection} options={({ navigation })=>{
+                        return {
                            headerRight: ()=><Button title='Next' onPress={()=>navigation.navigate('Gallery')} />
-                       }
+                        }
                     }}/>
-                   <OnboardingStack.Screen name='Gallery' component={EditGalleryScreen} options={()=>{
-                       return {
-                           headerRight: ()=><Button title='Done' onPress={()=>{
-                               console.log('saving the gallery')
+                    <OnboardingStack.Screen name='Gallery' component={EditGalleryScreen} options={()=>{
+                        return {
+                            headerRight: ()=><Button title='done' onPress={()=>{
                                 saveGallery()
+                                markOnboarded()
                             }} />
-                       }
+                        }
                     }}/>
                 </OnboardingStack.Navigator>
             }

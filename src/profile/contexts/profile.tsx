@@ -223,11 +223,18 @@ export function ProfileContextProvider({ children }){
         return true
     }
 
-    function markOnboarded(){
+    async function markOnboarded(){
         setProfile({
             ...profile,
             onboarded: true,
         })
+
+        const { data, error } = await supabase
+            .from('profiles')
+            .update({ onboarded: true, })
+            .eq('user_id', user.id)
+
+        if(error) console.error(error)
     }
 
 
