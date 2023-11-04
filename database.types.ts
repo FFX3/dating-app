@@ -221,6 +221,38 @@ export interface Database {
           }
         ]
       }
+      profile_images: {
+        Row: {
+          created_at: string
+          id: string
+          index: number
+          key: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          index: number
+          key: string
+          profile_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          index?: number
+          key?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_images_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          }
+        ]
+      }
       profiles: {
         Row: {
           bio: string | null

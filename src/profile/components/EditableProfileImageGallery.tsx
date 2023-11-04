@@ -12,36 +12,27 @@ const pickImage = async () => {
         allowsEditing: true,
         allowsMultipleSelection: false,
         quality: 1,
+        base64: true,
     });
 
     if (!result.canceled) {
-        console.log(result.assets[0].uri);
-        return (result.assets[0].uri)
+        return (result.assets[0])
     }
 }
 
 export default function EditableProfileImageGallery(){
-    const { profile: { gallery }, deleteImage, replaceImage } = useProfile()
+    const { gallery } = useProfile()
 
     const flatListData = [...gallery, { last: true }]
     return (
             <FlatList data={flatListData}
                 renderItem={({ item, index }) => {
+                    console.log(item)
                     if(item.last){
                         return <AddImageGalleryItem index={index} />
                     }
                     return <GalleryImageItem 
-                        item={{
-                            uri: item
-                        }}
-
-                        onDelete={()=>{
-                            deleteImage(index)
-                        }}
-
-                        onReplace={(uri: string)=>{
-                            replaceImage(index, uri)
-                        }}
+                        item={item}
                     />
                 }}
                 horizontal
@@ -53,8 +44,8 @@ export default function EditableProfileImageGallery(){
 
 const { width, height } = Dimensions.get('screen')
 
-function GalleryImageItem({ item, onDelete, onReplace }){
-    const { replaceImage } = useProfile()
+function GalleryImageItem({ item }){
+    const { replaceImage, deleteImage } = useProfile()
 
     return (
         <View style={styles.container}>
@@ -70,14 +61,16 @@ function GalleryImageItem({ item, onDelete, onReplace }){
                 right: 20,
                 bottom: 20,
             }}>
-                <FAB icon='pencil' onPress={ async ()=>{ onReplace(await pickImage())} } />
-                <FAB icon='delete' onPress={ onDelete } />
+                <FAB icon='pencil' onPress={ async ()=>{ replaceImage(item.index, await pickImage())} } />
+                <FAB icon='delete' onPress={ ()=>{
+                    deleteImage(item.index)
+                } } />
             </View>
         </View>
     )
 }
 
-function AddImageGalleryItem({ index }){
+function AddImageGalleryItem(){
     const { addImage } = useProfile()
 
 

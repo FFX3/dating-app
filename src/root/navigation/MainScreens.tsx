@@ -114,7 +114,7 @@ const Tab = createBottomTabNavigator()
 const OnboardingStack = createNativeStackNavigator()
 
 export default function MainNavigator(){
-    const { profile, markOnboarded } = useProfile()
+    const { profile, markOnboarded, saveGallery } = useProfile()
 
     return (
         <SafeAreaProvider>
@@ -144,7 +144,10 @@ export default function MainNavigator(){
                     }}/>
                    <OnboardingStack.Screen name='Gallery' component={EditGalleryScreen} options={()=>{
                        return {
-                           headerRight: ()=><Button title='Done' onPress={markOnboarded} />
+                           headerRight: ()=><Button title='Done' onPress={()=>{
+                               console.log('saving the gallery')
+                                saveGallery()
+                            }} />
                        }
                     }}/>
                 </OnboardingStack.Navigator>
