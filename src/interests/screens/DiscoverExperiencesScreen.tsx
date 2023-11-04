@@ -18,7 +18,7 @@ export function DiscoverExperiencesScreen(){
                         />
                     }
                 />}
-                keyExtractor={(item)=>{ console.log(item); return item.id}}
+                keyExtractor={(item)=>{ return item.id}}
                 ItemSeparatorComponent={()=><View style={{
                     height: 2,
                     backgroundColor: 'grey',

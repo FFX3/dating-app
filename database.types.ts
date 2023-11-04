@@ -143,6 +143,42 @@ export interface Database {
           }
         ]
       }
+      experience_selections: {
+        Row: {
+          created_at: string
+          experience_id: string
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          experience_id: string
+          id?: string
+          profile_id?: string
+        }
+        Update: {
+          created_at?: string
+          experience_id?: string
+          id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experience_selections_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experience_selections_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          }
+        ]
+      }
       experiences: {
         Row: {
           created_at: string
@@ -226,21 +262,18 @@ export interface Database {
           created_at: string
           id: string
           index: number
-          key: string
           profile_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           index: number
-          key: string
           profile_id?: string
         }
         Update: {
           created_at?: string
           id?: string
           index?: number
-          key?: string
           profile_id?: string
         }
         Relationships: [

@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useReducer } from "react"
 import fakeExperiences from '../../../fake-data/experiences.json'
+import { supabase } from "../../utils/supabase";
+import { useAuth } from "../../auth/authContext";
 
 export type Experience = {
     id: string;
@@ -77,33 +79,77 @@ export function useExperience(){
 }
 
 export function ExperienceContextProvider({ children }){
+    const { user } = useAuth()
+
     const [experiences, dispatchExperiences] =
         useReducer<ExperienceReducer>(experienceReducer, { discover: {}, selected: {} })
 
     //TODO replace with useQuery
     useEffect(()=>{
+        if(! user?.id) return
         fetchExperiences()
-    },[])
+    },[user?.id])
 
-    function fetchExperiences() {
+    async function fetchExperiences() {
+        const { data: selected, error: selected_error } = await supabase
+            .from('experiences')
+            .select('*, experience_selections!inner(*)')
+
+        if(selected_error) console.error(selected_error)
+
+        const { data: discover, error: discover_error } = await supabase
+            .from('experiences')
+            .select('*, experience_selections(experience_id)')
+            .neq('experience_selections.experience_id', user.id)
+
+        if(discover_error) console.error(discover_error)
+
+        const state: ExperienceState = {
+            discover: discover.reduce((carry, row)=>{
+                // remove selected from discover
+                if(row.experience_selections.length) return carry
+                delete row['experience_selections']
+                carry[row.id] = row
+                return carry
+            },{}),
+            selected: selected.reduce((carry, row)=>{
+                delete row['experience_selections']
+                carry[row.id] = row
+                return carry
+            },{}),
+        }
+
+
         dispatchExperiences({
             type: 'set_state',
-            payload: { state: fakeExperiences },
+            payload: { state },
         })
     }
 
-    function addExperience(experience_id: string) {
+    async function addExperience(experience_id: string) {
         dispatchExperiences({
             type: 'select',
             payload: { filter: { experience_id }} 
         }) 
+
+        const { error } = await supabase.from('experience_selections')
+            .insert({ experience_id })
+
+        if(error)
+            console.error(error)
     }
 
-    function removeExperience(experience_id: string) {
+    async function removeExperience(experience_id: string) {
         dispatchExperiences({
             type: 'deselect',
             payload: { filter: { experience_id }} 
         }) 
+
+        const { error } = await supabase.from('experience_selections')
+            .delete()
+            .eq('experience_id', experience_id)
+        if(error)
+            console.error(error)
     }
     
 

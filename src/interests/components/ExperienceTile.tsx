@@ -32,7 +32,6 @@ export function ExperienceTile(
                 {action(experience)}
                 <Button title='Details' 
                     onPress={()=>{
-                        console.log('opening details')
                         navigation.navigate('Experiences', {
                                 screen: 'Details',
                                 params: { experience }
