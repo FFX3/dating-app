@@ -64,7 +64,7 @@ function messageReducer(
         && !!payload.message
     ){
         state[payload.filter.profile_id].messages.push({
-            sender: true,
+            is_sender: true,
             contents: payload.message
         }) 
         return { ...state }
@@ -76,7 +76,7 @@ function messageReducer(
         && !!payload.message
     ){
         state[payload.profile.id].messages.push({
-            sender: false,
+            is_sender: false,
             contents: payload.message
         }) 
         return { ...state }
@@ -200,7 +200,15 @@ export function MessagerContextProvider({ children }){
         })
     }
 
-    function sendMessage(contact_profile_id: string, message: string){
+    async function sendMessage(contact_profile_id: string, message: string){
+        const { error } = await supabase
+            .rpc('send_message', {
+                _contact_id: contact_profile_id,
+                _message: message,
+            })
+
+        if(error) console.error(error)
+
         dispatchMessager({
             type: 'send_message',
             payload: {
