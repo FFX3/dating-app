@@ -138,7 +138,14 @@ export interface Database {
             foreignKeyName: "dates_message_room_id_fkey"
             columns: ["message_room_id"]
             isOneToOne: false
-            referencedRelation: "message_rooms"
+            referencedRelation: "contacts"
+            referencedColumns: ["match_id"]
+          },
+          {
+            foreignKeyName: "dates_message_room_id_fkey"
+            columns: ["message_room_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
             referencedColumns: ["id"]
           }
         ]
@@ -174,6 +181,13 @@ export interface Database {
             foreignKeyName: "experience_selections_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "experience_selections_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           }
@@ -200,21 +214,74 @@ export interface Database {
         }
         Relationships: []
       }
-      message_rooms: {
+      likes: {
+        Row: {
+          created_at: string
+          id: string
+          liker: string
+          likey: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          liker: string
+          likey: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          liker?: string
+          likey?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "likes_liker_fkey"
+            columns: ["liker"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "likes_liker_fkey"
+            columns: ["liker"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "likes_likey_fkey"
+            columns: ["likey"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "likes_likey_fkey"
+            columns: ["likey"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          }
+        ]
+      }
+      matches: {
         Row: {
           created_at: string
           id: string
           members: string[]
+          seen_by: string[] | null
         }
         Insert: {
           created_at?: string
           id?: string
           members: string[]
+          seen_by?: string[] | null
         }
         Update: {
           created_at?: string
           id?: string
           members?: string[]
+          seen_by?: string[] | null
         }
         Relationships: []
       }
@@ -222,31 +289,45 @@ export interface Database {
         Row: {
           created_at: string
           id: string
+          match_id: string
           message: string | null
-          message_room_id: string
           sender_id: string | null
         }
         Insert: {
           created_at?: string
           id?: string
+          match_id: string
           message?: string | null
-          message_room_id: string
           sender_id?: string | null
         }
         Update: {
           created_at?: string
           id?: string
+          match_id?: string
           message?: string | null
-          message_room_id?: string
           sender_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "messages_message_room_id_fkey"
-            columns: ["message_room_id"]
+            foreignKeyName: "messages_match_id_fkey"
+            columns: ["match_id"]
             isOneToOne: false
-            referencedRelation: "message_rooms"
+            referencedRelation: "contacts"
+            referencedColumns: ["match_id"]
+          },
+          {
+            foreignKeyName: "messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "messages_sender_id_fkey"
@@ -281,6 +362,13 @@ export interface Database {
             foreignKeyName: "profile_images_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "profile_images_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           }
@@ -292,7 +380,7 @@ export interface Database {
           created_at: string
           interested_in: Database["public"]["Enums"]["sex"][] | null
           name: string | null
-          onboarded: boolean | null
+          onboarded: boolean
           sex: Database["public"]["Enums"]["sex"] | null
           user_id: string
         }
@@ -301,7 +389,7 @@ export interface Database {
           created_at?: string
           interested_in?: Database["public"]["Enums"]["sex"][] | null
           name?: string | null
-          onboarded?: boolean | null
+          onboarded?: boolean
           sex?: Database["public"]["Enums"]["sex"] | null
           user_id?: string
         }
@@ -310,7 +398,7 @@ export interface Database {
           created_at?: string
           interested_in?: Database["public"]["Enums"]["sex"][] | null
           name?: string | null
-          onboarded?: boolean | null
+          onboarded?: boolean
           sex?: Database["public"]["Enums"]["sex"] | null
           user_id?: string
         }
@@ -326,7 +414,51 @@ export interface Database {
       }
     }
     Views: {
-      [_ in never]: never
+      contacts: {
+        Row: {
+          bio: string | null
+          image_ids: string[] | null
+          match_id: string | null
+          name: string | null
+          profile_id: string | null
+          sex: Database["public"]["Enums"]["sex"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_user_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      message_view: {
+        Row: {
+          contact_id: string | null
+          created_at: string | null
+          id: string | null
+          is_sender: boolean | null
+          match_id: string | null
+          message: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["match_id"]
+          }
+        ]
+      }
     }
     Functions: {
       add_availability_exception: {
@@ -335,6 +467,12 @@ export interface Database {
           _end: string
         }
         Returns: string
+      }
+      macth: {
+        Args: {
+          new_like: unknown
+        }
+        Returns: undefined
       }
     }
     Enums: {

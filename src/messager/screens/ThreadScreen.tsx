@@ -27,7 +27,7 @@ export function ThreadScreen({ route }) {
                 data={[...messages].reverse()}
                 renderItem={({ item } : { item: Message }) =>(
                     <View style={styles.message_row}>
-                        <View style={item.sender ? styles.sent_message_bubble : styles.received_message_bubble}>
+                        <View style={item.is_sender ? styles.sent_message_bubble : styles.received_message_bubble}>
                             <Text style={styles.message}>{item.contents}</Text>
                         </View>
                     </View>

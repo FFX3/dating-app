@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useEffect, useMemo, useReducer } from "react"
 import fakeMessages from '../../../fake-data/messager.json'
+import { Database } from "../../../database.types";
+import { useAuth } from "../../auth/authContext";
+import { get_profile_image_url, supabase } from "../../utils/supabase";
 
 export type PublicProfile = {
     id: string;
@@ -9,8 +12,11 @@ export type PublicProfile = {
     gallery: String[];
 }
 
+type DatabaseContact = Database['public']['Views']['contacts']['Row'];
+type DatabaseMessage = Database['public']['Views']['message_view']['Row'];
+
 export type Message = {
-    sender: boolean,
+    is_sender: boolean,
     contents: String,
 }
 
@@ -95,14 +101,49 @@ export function useMessager(){
 }
 
 export function MessagerContextProvider({ children }){
+    const { user } = useAuth()
     const [messager, dispatchMessager] = useReducer<MessagerReducer>(messageReducer, {})
 
     //TODO replace with useQuery
     useEffect(()=>{
-        fetchContacts()
-    },[])
+        if(!user?.id) return;
 
-    function fetchContacts() {
+        fetchContacts()
+    },[user?.id])
+
+    async function fetchContacts() {
+        const { data, error } = await supabase
+            .from('contacts')
+            .select()
+            .returns<DatabaseContact[]>()
+
+        if(error) console.error(error)
+
+        data.forEach(async (row)=>{
+            const gallery = []
+
+            const { image_ids } = row
+            if(image_ids){
+                for (let i=0; i<image_ids.length; i++){
+                    gallery
+                        .push(get_profile_image_url(image_ids[i], row.profile_id))
+                }
+            }
+
+            dispatchMessager({
+                type: 'add_contact',
+                payload: { profile: {
+                    id: row.profile_id,
+                    name: row.name,
+                    sex: row.sex,
+                    bio: row.bio,
+                    gallery,
+                }, }
+            })
+        })
+        
+        return
+        
         Object.values(fakeMessages)
             .forEach((contact)=>{
                 dispatchMessager({
@@ -113,7 +154,31 @@ export function MessagerContextProvider({ children }){
 
     }
     
-    function fetchMessages(contact_profile_id: string) {
+    async function fetchMessages(contact_profile_id: string) {
+        const { data: database_messages, error } = await supabase
+            .from('message_view')
+            .select()
+            .eq('contact_id', contact_profile_id)
+            .returns<DatabaseMessage[]>()
+
+        if(error) console.error(error)
+
+        dispatchMessager({
+            type: 'set_messages',
+            payload: {
+                filter: {
+                    profile_id: contact_profile_id,
+                },
+                messages: database_messages.map(row=>{
+                    return {
+                        is_sender: row.is_sender,
+                        contents: row.message
+                    }
+                }),
+            }
+        })
+
+        return 
         const { messages } = fakeMessages
             .find((contact)=>contact.profile.id == contact_profile_id)
 

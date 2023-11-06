@@ -63,4 +63,19 @@ const supabase = createClient(
   },
 });
 
-export { supabase }
+async function get_profile_image_url(id: string, user_id=null) {
+    if(user_id===null){
+        const user_response = await supabase.auth.getUser()
+        user_id = user_response.data.user.id
+    }
+    const { data: url, error } = await supabase
+        .storage
+        .from('profiles')
+        .createSignedUrl(`${user_id}/profile-images/${id}`, 60 * 24)
+
+    if(error) { console.error(error) }
+
+    return url
+}
+
+export { supabase, get_profile_image_url }
