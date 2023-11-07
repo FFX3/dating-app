@@ -75,7 +75,7 @@ function messageReducer(
         && !!payload?.filter.profile_id 
         && !!payload.message
     ){
-        state[payload.profile.id].messages.push({
+        state[payload.filter.profile_id].messages.push({
             is_sender: false,
             contents: payload.message
         }) 
@@ -109,7 +109,44 @@ export function MessagerContextProvider({ children }){
         if(!user?.id) return;
 
         fetchContacts()
+        const unsubMessages = subsribeToMessageStream()
+
+        return ()=>{
+            // TODO fix unsubsription
+            //unsubMessages()
+        }
     },[user?.id])
+
+    function subsribeToMessageStream(){
+        const channel = supabase
+          .channel('table-db-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'messages',
+            },
+            (payload) => {
+                console.log('from subscription')
+                const { sender_id, message } = payload.new
+                if (sender_id == user.id) return
+
+                dispatchMessager({
+                    type: 'receive_message',
+                    payload: {
+                        message,
+                        filter: {
+                            profile_id: sender_id
+                        }
+                    }
+                })
+            }
+          )
+          .subscribe()
+
+        return channel.unsubscribe
+    }
 
     async function fetchContacts() {
         const { data, error } = await supabase
