@@ -147,6 +147,13 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "matches"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dates_message_room_id_fkey"
+            columns: ["message_room_id"]
+            isOneToOne: false
+            referencedRelation: "pending_matches"
+            referencedColumns: ["match_id"]
           }
         ]
       }
@@ -182,6 +189,13 @@ export interface Database {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "experience_selections_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "pending_matches"
             referencedColumns: ["profile_id"]
           },
           {
@@ -245,6 +259,13 @@ export interface Database {
             foreignKeyName: "likes_liker_fkey"
             columns: ["liker"]
             isOneToOne: false
+            referencedRelation: "pending_matches"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "likes_liker_fkey"
+            columns: ["liker"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
@@ -253,6 +274,13 @@ export interface Database {
             columns: ["likey"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "likes_likey_fkey"
+            columns: ["likey"]
+            isOneToOne: false
+            referencedRelation: "pending_matches"
             referencedColumns: ["profile_id"]
           },
           {
@@ -268,19 +296,25 @@ export interface Database {
         Row: {
           created_at: string
           id: string
+          liked: string[] | null
           members: string[]
+          passed: string[] | null
           seen_by: string[] | null
         }
         Insert: {
           created_at?: string
           id?: string
+          liked?: string[] | null
           members: string[]
+          passed?: string[] | null
           seen_by?: string[] | null
         }
         Update: {
           created_at?: string
           id?: string
+          liked?: string[] | null
           members?: string[]
+          passed?: string[] | null
           seen_by?: string[] | null
         }
         Relationships: []
@@ -290,22 +324,22 @@ export interface Database {
           created_at: string
           id: string
           match_id: string
-          message: string | null
-          sender_id: string | null
+          message: string
+          sender_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           match_id: string
-          message?: string | null
-          sender_id?: string | null
+          message: string
+          sender_id?: string
         }
         Update: {
           created_at?: string
           id?: string
           match_id?: string
-          message?: string | null
-          sender_id?: string | null
+          message?: string
+          sender_id?: string
         }
         Relationships: [
           {
@@ -323,10 +357,24 @@ export interface Database {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "pending_matches"
+            referencedColumns: ["match_id"]
+          },
+          {
             foreignKeyName: "messages_sender_id_fkey"
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "pending_matches"
             referencedColumns: ["profile_id"]
           },
           {
@@ -363,6 +411,13 @@ export interface Database {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "profile_images_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "pending_matches"
             referencedColumns: ["profile_id"]
           },
           {
@@ -456,6 +511,32 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["match_id"]
+          },
+          {
+            foreignKeyName: "messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "pending_matches"
+            referencedColumns: ["match_id"]
+          }
+        ]
+      }
+      pending_matches: {
+        Row: {
+          bio: string | null
+          image_ids: string[] | null
+          match_id: string | null
+          name: string | null
+          profile_id: string | null
+          sex: Database["public"]["Enums"]["sex"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_user_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
           }
         ]
       }
@@ -468,9 +549,22 @@ export interface Database {
         }
         Returns: string
       }
-      macth: {
+      like: {
         Args: {
-          new_like: unknown
+          _profile_id: string
+        }
+        Returns: undefined
+      }
+      pass: {
+        Args: {
+          _profile_id: string
+        }
+        Returns: undefined
+      }
+      send_message: {
+        Args: {
+          _message: string
+          _contact_id: string
         }
         Returns: undefined
       }

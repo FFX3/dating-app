@@ -75,7 +75,7 @@ async function get_profile_image_url(id: string, user_id=null) {
 
     if(error) { console.error(error) }
 
-    return url
+    return url.signedUrl
 }
 
 export { supabase, get_profile_image_url }

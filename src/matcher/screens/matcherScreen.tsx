@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { PublicProfile } from '../contexts/matcher'
 import { useMatcher } from '../contexts/matcher'
 import { StyleSheet, Text, View, Dimensions, Image, Animated, PanResponder,
@@ -14,7 +14,7 @@ const SCREEN_WIDTH = Dimensions.get('window').width
 
 
 export function MatcherScreen(){
-    const { getQueue, like, pass } = useMatcher()
+    const { like, pass, selectQueue } = useMatcher()
 
     const positionRef = useRef(new Animated.ValueXY())
     const position = positionRef.current
@@ -49,8 +49,9 @@ export function MatcherScreen(){
         extrapolate: 'clamp',
     })
 
-    const panResponder = useRef(
-        PanResponder.create({
+
+    const buildPanResponder = useCallback(() => {
+        return PanResponder.create({
 
             onMoveShouldSetPanResponderCapture: (evt, gestureState) => (
             (gestureState.dx - Math.abs(30)) < 0),
@@ -87,15 +88,18 @@ export function MatcherScreen(){
                     }).start()
                 }
             },
-    })).current
+        })
+    },[like, pass])
+    
+    const panResponder = buildPanResponder()
 
     return <View style={{ flex: 1 }}>
         <View style={{ height: 60 }}>
         </View>
         <View style={{ flex: 1 }}>
-            { getQueue().map((profile, index)=>{
+            { selectQueue().map((profile, index)=>{
                 return <SwipableCard
-                    opacity={nextCardOpacity}
+                    opacity={index > 1 ? 0 : nextCardOpacity}
                     scale={nextCardScale}
                     key={profile.id}
                     swipable={index==0} 
