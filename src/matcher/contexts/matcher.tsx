@@ -87,7 +87,7 @@ export function MatcherContextStateProvider({ children }){
         order: [],
         profiles: {},
     })
-
+    
     const [newMatch, setNewMatch] = useState<PublicProfile>(null)
 
     useEffect(()=>{
@@ -101,18 +101,19 @@ export function MatcherContextStateProvider({ children }){
             .from('pending_matches')
             .select()
             .returns<DatabasePendingMatch[]>()
-            
 
         if(error) console.error(error)
 
+
+
         const newQueue = []
-        for (var i=0; i<data.length; i++){
+        for (let i=0; i<data.length; i++){
             const row = data[i]
             const gallery = []
 
             const { image_ids } = row
             if(image_ids){
-                for (var i=0; i<image_ids.length; i++){
+                for (let k=0; k<image_ids.length; k++){
                     gallery
                         .push(await get_profile_image_url(image_ids[i], row.profile_id))
                 }
@@ -212,6 +213,7 @@ function MatcherContextInterfaceProvider({ children }){
     function like() {
         const profile = selectQueue()[0]
         matcher.dispatchMatcheQueue({ type: 'like' })
+        console.log(profile.name)
         supabase.rpc('like', {
             _profile_id: profile.id
         }).then(({ error })=>{
