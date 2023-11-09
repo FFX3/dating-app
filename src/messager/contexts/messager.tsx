@@ -15,7 +15,7 @@ export type PublicProfile = {
     gallery: String[];
 }
 
-type DatabaseContact = Database['public']['Views']['contacts']['Row'];
+export type DatabaseContact = Database['public']['Views']['contacts']['Row'];
 type DatabaseMessage = Database['public']['Views']['message_view']['Row'];
 type DatabaseMessageRow = Database['public']['Tables']['messages']['Row'];
 
@@ -110,42 +110,12 @@ export function useMessager(){
 
 export function MessagerContextProvider({ children }){
     const { user } = useAuth()
-    const { newMatchId } = useMatcher()
+    const { newMatch } = useMatcher()
     const [messager, dispatchMessager] = useReducer<MessagerReducer>(messageReducer, {})
 
-    console.log(newMatchId)
-
     useEffect(()=>{
-        if(!newMatchId){ return }
-        fetchNewMatchContact(newMatchId)
-    },[newMatchId])
-
-    useEffect(()=>{
-        if(!user?.id) return;
-
-        fetchContacts()
-        subsribeToMessageStream()
-    },[user?.id])
-
-    async function fetchNewMatchContact(match_id: string){
-        const { data, error } = await supabase
-            .from('contacts')
-            .select()
-            .eq('match_id', match_id)
-            .single()
-
-        if(error){ console.error(error) }
-        
-        const gallery = []
-
-        const { image_ids, id, name, sex, bio } = data
-        if(image_ids){
-            for (let i=0; i<image_ids.length; i++){
-                gallery
-                    .push(await get_profile_image_url(image_ids[i], data.profile_id))
-            }
-        }
-
+        if(!newMatch){ return }
+        const { gallery, id, name, sex, bio } = newMatch
         dispatchMessager({
             type: 'add_contact',
             payload: { profile: {
@@ -156,7 +126,14 @@ export function MessagerContextProvider({ children }){
                 gallery,
             }, }
         })
-    }
+    },[newMatch])
+
+    useEffect(()=>{
+        if(!user?.id) return;
+
+        fetchContacts()
+        subsribeToMessageStream()
+    },[user?.id])
 
     function subsribeToMessageStream(){
         supabase.channel('received-messages')

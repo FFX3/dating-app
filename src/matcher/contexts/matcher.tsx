@@ -2,15 +2,11 @@ import React, { useState, createContext, useContext, useRef, useMemo, useReducer
 import { get_profile_image_url, supabase } from "../../utils/supabase";
 import { useAuth } from "../../auth/authContext";
 import { Database } from "../../../database.types";
-import { usePortal } from "@gorhom/portal";
-import { FullWindowOverlay } from "react-native-screens";
-import { Animated, Dimensions, StyleSheet, Text, View } from "react-native";
 import { RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
 import { Portal } from "react-native-paper";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { NewMatchPopup } from "../components/NewMatchPopup";
+import { DatabaseContact } from "../../messager/contexts/messager";
 
-const SCREEN_HEIGHT = Dimensions.get('window').height - 50
-const SCREEN_WIDTH = Dimensions.get('window').width
 
 export type PublicProfile = {
     id: string;
@@ -83,42 +79,6 @@ function matcherQueueReducer(state: MatcherQueueState, action: MatcherQueueActio
     return state
 }
 
-export function NewMatchPopup({ close, match_id }){
-    const duration = 4000
-    const animatedOpacity = useRef(new Animated.Value(1)).current
-
-    function startFadeOut(){
-        Animated.timing(animatedOpacity, {
-            toValue: 0,
-            delay: duration/2,
-            duration: duration/2,
-            useNativeDriver: true,
-        }).start();
-
-        return setTimeout(close, duration)
-    }
-
-    useEffect(()=>{
-        const timeout = startFadeOut()
-        return ()=>{ clearTimeout(timeout) }
-    },[])
-
-    return( 
-        <SafeAreaProvider>
-            <Animated.View style={{
-                height: SCREEN_HEIGHT,
-                width: SCREEN_WIDTH,
-                backgroundColor: 'green',
-                opacity: animatedOpacity,
-                alignItems: 'center',
-                justifyContent: 'center',
-            }}>
-                <Text>match_id: { match_id }</Text>
-            </Animated.View>
-        </SafeAreaProvider>
-    )
-}
-
 export function MatcherContextStateProvider({ children }){
     const { user } = useAuth()
 
@@ -128,7 +88,7 @@ export function MatcherContextStateProvider({ children }){
         profiles: {},
     })
 
-    const [newMatchId, setNewMatchId] = useState<string>(null)
+    const [newMatch, setNewMatch] = useState<PublicProfile>(null)
 
     useEffect(()=>{
         if(!user?.id){ return }
@@ -180,7 +140,7 @@ export function MatcherContextStateProvider({ children }){
                   schema: 'public',
                   table: 'matches',
                 },
-                (payload: RealtimePostgresUpdatePayload<DatabaseMatch>) => {
+                async (payload: RealtimePostgresUpdatePayload<DatabaseMatch>) => {
                     console.log('from subscription')
                     const { id: match_id, members, liked: new_liked } = payload.new
                     const { liked: old_liked } = payload.old
@@ -208,7 +168,24 @@ export function MatcherContextStateProvider({ children }){
                         return 
                     }
 
-                    setNewMatchId(match_id)
+                    const { data, error } = await supabase
+                        .from('contacts')
+                        .select()
+                        .eq('match_id', match_id)
+                        .single<DatabaseContact>()
+
+                    if(error) console.error(error)
+
+                    const gallery = []
+
+                    const { profile_id: id, sex, bio, name, image_ids } = data
+                    if(image_ids){
+                        for (let i=0; i<image_ids.length; i++){
+                            gallery
+                                .push(await get_profile_image_url(image_ids[i], data.profile_id))
+                        }
+                    }
+                    setNewMatch({ id, sex, bio, name, gallery, })
                 }
             ).subscribe()
     }
@@ -216,14 +193,14 @@ export function MatcherContextStateProvider({ children }){
     const value = {
         dispatchMatcheQueue,
         matcherQueue,
-        newMatchId,
+        newMatch,
     }
 
     return <matcherStateContext.Provider value={value}>
         <Portal>
-            {newMatchId && <NewMatchPopup 
-                close={()=>setNewMatchId(null)}
-                match_id={newMatchId}
+            {!!newMatch && <NewMatchPopup 
+                close={()=>setNewMatch(null)}
+                profile={newMatch}
             />}
         </Portal>
         { children }
@@ -270,7 +247,7 @@ function MatcherContextInterfaceProvider({ children }){
         like,
         pass,
         selectQueue,
-        newMatchId: matcher.newMatchId,
+        newMatch: matcher.newMatch,
     }
 
     return <matcherContext.Provider value={value}>
