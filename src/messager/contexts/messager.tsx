@@ -3,6 +3,8 @@ import fakeMessages from '../../../fake-data/messager.json'
 import { Database } from "../../../database.types";
 import { useAuth } from "../../auth/authContext";
 import { get_profile_image_url, supabase } from "../../utils/supabase";
+import { useRealtime } from "../../utils/RealtimeContext";
+import { RealtimePostgresInsertPayload } from "@supabase/supabase-js";
 
 export type PublicProfile = {
     id: string;
@@ -14,6 +16,7 @@ export type PublicProfile = {
 
 type DatabaseContact = Database['public']['Views']['contacts']['Row'];
 type DatabaseMessage = Database['public']['Views']['message_view']['Row'];
+type DatabaseMessageRow = Database['public']['Tables']['messages']['Row'];
 
 export type Message = {
     is_sender: boolean,
@@ -31,15 +34,34 @@ export type MessagerState = {
     [profile_id: string]: Contact,
 }
 
-export type MessagerAction = { 
-    type: String, 
-    payload?: {
-        profile?: PublicProfile
-        message?: string,
-        filter?: { profile_id: string },
-        messages?: Message[],
-    } 
-}
+export type MessagerAction = 
+    {
+        type: 'add_contact',
+        payload: {
+            profile: PublicProfile
+        }
+    }
+    |{
+        type: 'send_message',
+        payload: {
+            profile_id: string,
+            message: string,
+        }
+    }
+    |{
+        type: 'receive_message',
+        payload: {
+            profile_id: string,
+            message: string
+        }
+    }
+    |{
+        type: 'set_messages',
+        payload: {
+            profile_id: string,
+            messages: Message[]
+        }
+    }
 
 type MessagerReducer = 
     (arg0: MessagerState, arg1: MessagerAction)=>MessagerState
@@ -49,49 +71,34 @@ function messageReducer(
     action: MessagerAction,
 ){
     const { type, payload } = action
+    console.log(type)
 
-    if(type == 'add_contact' && !!payload.profile ){
-        state[payload.profile.id] = {
-            messages: [],
-            profile: payload.profile,
-        }
-        return { ...state }
-    }
-    console.log(type, payload)
-    if(
-        type == 'send_message' 
-        && !!payload?.filter.profile_id 
-        && !!payload.message
-    ){
-        state[payload.filter.profile_id].messages.push({
-            is_sender: true,
-            contents: payload.message
-        }) 
-        return { ...state }
-    }
-
-    if(
-        type == 'receive_message' 
-        && !!payload?.filter.profile_id 
-        && !!payload.message
-    ){
-        state[payload.filter.profile_id].messages.push({
-            is_sender: false,
-            contents: payload.message
-        }) 
-        return { ...state }
+    switch(type){
+        case 'add_contact':
+            state[payload.profile.id] = {
+                messages: [],
+                profile: payload.profile,
+            }
+            break
+        case 'send_message':
+            state[payload.profile_id].messages.push({
+                is_sender: true,
+                contents: payload.message
+            }) 
+            break
+        case "receive_message":
+            console.log('in message received action')
+            state[payload.profile_id].messages.push({
+                is_sender: false,
+                contents: payload.message
+            }) 
+            break
+        case "set_messages":
+            state[payload.profile_id].messages = payload.messages
+            break
     }
 
-    if(
-        type == 'set_messages' 
-        && !!payload?.filter.profile_id 
-        && !!payload.messages
-    ){
-        state[payload.filter.profile_id].messages = payload.messages
-        return { ...state }
-    }
-
-    return state
+    return { ...state }
 }
 
 const messagerContext = createContext(null)
@@ -104,48 +111,37 @@ export function MessagerContextProvider({ children }){
     const { user } = useAuth()
     const [messager, dispatchMessager] = useReducer<MessagerReducer>(messageReducer, {})
 
-    //TODO replace with useQuery
     useEffect(()=>{
         if(!user?.id) return;
 
         fetchContacts()
-        const unsubMessages = subsribeToMessageStream()
-
-        return ()=>{
-            // TODO fix unsubsription
-            //unsubMessages()
-        }
+        subsribeToMessageStream()
     },[user?.id])
 
     function subsribeToMessageStream(){
-        const channel = supabase
-          .channel('table-db-changes')
-          .on(
-            'postgres_changes',
-            {
-              event: 'INSERT',
-              schema: 'public',
-              table: 'messages',
-            },
-            (payload) => {
-                console.log('from subscription')
-                const { sender_id, message } = payload.new
-                if (sender_id == user.id) return
+        supabase.channel('received-messages')
+            .on('postgres_changes',
+                {
+                  event: '*',
+                  schema: 'public',
+                  table: 'messages',
+                },
+                (payload: RealtimePostgresInsertPayload<DatabaseMessageRow>) => {
+                    const { sender_id, message } = payload.new
+                    console.log('in callback', sender_id, user.id)
+                    if (sender_id == user.id) { return }
 
-                dispatchMessager({
-                    type: 'receive_message',
-                    payload: {
-                        message,
-                        filter: {
+                    console.log('sending dispatch')
+
+                    dispatchMessager({
+                        type: 'receive_message',
+                        payload: {
+                            message,
                             profile_id: sender_id
                         }
-                    }
-                })
-            }
-          )
-          .subscribe()
-
-        return channel.unsubscribe
+                    })
+                }
+            ).subscribe()
     }
 
     async function fetchContacts() {
@@ -180,15 +176,6 @@ export function MessagerContextProvider({ children }){
         })
         
         return
-        
-        Object.values(fakeMessages)
-            .forEach((contact)=>{
-                dispatchMessager({
-                    type: 'add_contact',
-                    payload: { profile: contact.profile, }
-                })
-            })
-
     }
     
     async function fetchMessages(contact_profile_id: string) {
@@ -203,9 +190,7 @@ export function MessagerContextProvider({ children }){
         dispatchMessager({
             type: 'set_messages',
             payload: {
-                filter: {
-                    profile_id: contact_profile_id,
-                },
+                profile_id: contact_profile_id,
                 messages: database_messages.map(row=>{
                     return {
                         is_sender: row.is_sender,
@@ -215,19 +200,6 @@ export function MessagerContextProvider({ children }){
             }
         })
 
-        return 
-        const { messages } = fakeMessages
-            .find((contact)=>contact.profile.id == contact_profile_id)
-
-        dispatchMessager({
-            type: 'set_messages',
-            payload: {
-                filter: {
-                    profile_id: contact_profile_id,
-                },
-                messages,
-            }
-        })
     }
 
     function addContact(profile: PublicProfile){
@@ -249,9 +221,7 @@ export function MessagerContextProvider({ children }){
         dispatchMessager({
             type: 'send_message',
             payload: {
-                filter: {
-                    profile_id: contact_profile_id,
-                },
+                profile_id: contact_profile_id,
                 message,
             }
         })

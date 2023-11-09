@@ -1,9 +1,16 @@
-import React, { useState, createContext, useContext, useRef, useMemo, useReducer, useEffect } from "react"
-import fakeProfiles from '../../../fake-data/matcher-queue.json'
+import React, { useState, createContext, useContext, useRef, useMemo, useReducer, useEffect, ReactNode } from "react"
 import { get_profile_image_url, supabase } from "../../utils/supabase";
 import { useAuth } from "../../auth/authContext";
 import { Database } from "../../../database.types";
-import { Profile } from "../../onboarding/screens/Profile";
+import { usePortal } from "@gorhom/portal";
+import { FullWindowOverlay } from "react-native-screens";
+import { Dimensions, StyleSheet, Text, View } from "react-native";
+import { RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
+import { Portal } from "react-native-paper";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+
+const SCREEN_HEIGHT = Dimensions.get('window').height - 50
+const SCREEN_WIDTH = Dimensions.get('window').width
 
 export type PublicProfile = {
     id: string;
@@ -14,6 +21,7 @@ export type PublicProfile = {
 }
 
 type DatabasePendingMatch = Database['public']['Views']['pending_matches']['Row']
+type DatabaseMatch = Database['public']['Tables']['matches']['Row']
 
 type MatcherQueueState = {
     index: number
@@ -77,6 +85,7 @@ function matcherQueueReducer(state: MatcherQueueState, action: MatcherQueueActio
 
 export function MatcherContextStateProvider({ children }){
     const { user } = useAuth()
+    const portal = usePortal()
 
     const [matcherQueue, dispatchMatcheQueue] = useReducer<MatcherQueueReducer>(matcherQueueReducer, {
         index: 0,
@@ -84,9 +93,12 @@ export function MatcherContextStateProvider({ children }){
         profiles: {},
     })
 
+    const [showPopup, setShowPopup] = useState<ReactNode>(null)
+
     useEffect(()=>{
         if(!user?.id){ return }
         fillQueue()
+        subsribeToMatchStream()
     },[user?.id])
 
     async function fillQueue(){
@@ -121,9 +133,62 @@ export function MatcherContextStateProvider({ children }){
 
         dispatchMatcheQueue({
             type: 'set',
-            //payload: { profiles: newQueue.concat(fakeProfiles) }
             payload: { profiles: newQueue }
         })
+    }
+
+    function subsribeToMatchStream(){
+        supabase.channel('new-matches')
+            .on('postgres_changes',
+                {
+                  event: 'UPDATE',
+                  schema: 'public',
+                  table: 'matches',
+                },
+                (payload: RealtimePostgresUpdatePayload<DatabaseMatch>) => {
+                    console.log('from subscription')
+                    const { id: match_id, members, liked: new_liked } = payload.new
+                    const { liked: old_liked } = payload.old
+
+                    if(new_liked == null) { 
+                        console.log('new_liked is null')
+                        return 
+                    }
+
+                    if(!(old_liked == null || old_liked.length != new_liked.length)){ 
+                        console.log('old an new is same')
+                        return 
+                    }
+                    
+                    if(new_liked.length != members.length){ 
+                        console.log('not a match')
+                        return 
+                    }
+
+                    new_liked.sort()
+                    members.sort()
+
+                    if(!new_liked.every((item, index)=>item==members[index])){ 
+                        console.log('foreign member')
+                        return 
+                    }
+
+                    setShowPopup(()=>
+                        <SafeAreaProvider>
+                            <View style={{
+                                height: SCREEN_HEIGHT,
+                                width: SCREEN_WIDTH,
+                                backgroundColor: 'green',
+                            }}>
+                                <Text>match_id: { match_id }</Text>
+                            </View>
+                        </SafeAreaProvider>
+                    )
+
+                    setTimeout(()=>setShowPopup(null), 2000)
+
+                }
+            ).subscribe()
     }
     
     const value = {
@@ -132,6 +197,9 @@ export function MatcherContextStateProvider({ children }){
     }
 
     return <matcherStateContext.Provider value={value}>
+        <Portal>
+            {showPopup}
+        </Portal>
         { children }
     </matcherStateContext.Provider>
 }

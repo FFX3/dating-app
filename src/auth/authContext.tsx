@@ -11,7 +11,6 @@ export function useAuth(){
 export function AuthContextProvider({ children }){
     const [authError, setAuthError] = useState(null)
     const [user, setUser] = useState<User>()
-    
 
     async function register(email: string, password: string){
         const { data, error } = await supabase.auth.signUp({ email, password })

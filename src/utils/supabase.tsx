@@ -1,10 +1,12 @@
 
 import 'react-native-url-polyfill/auto'
-import { createClient } from '@supabase/supabase-js'
+import { RealtimeChannel, createClient } from '@supabase/supabase-js'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import * as aesjs from 'aes-js';
 import 'react-native-get-random-values';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { useAuth } from '../auth/authContext';
 
 // As Expo's SecureStore does not support values larger than 2048
 // bytes, an AES-256 key is generated and stored in SecureStore, while
@@ -77,5 +79,6 @@ async function get_profile_image_url(id: string, user_id=null) {
 
     return url.signedUrl
 }
+
 
 export { supabase, get_profile_image_url }
