@@ -13,17 +13,17 @@ export default function Main() {
         <Provider>
             <PortalProvider>
                 <AuthContextProvider>
-                    <MessagerContextProvider>
-                        <ProfileContextProvider>
-                            <AvailabilityContextProvider>
-                                <MatcherContextProvider>
-                                    <ExperienceContextProvider>
-                                        <RootNavigator />
-                                    </ExperienceContextProvider>
-                                </MatcherContextProvider>
-                            </AvailabilityContextProvider>
-                        </ProfileContextProvider>
-                    </MessagerContextProvider>
+                    <MatcherContextProvider>
+                        <MessagerContextProvider>
+                            <ProfileContextProvider>
+                                <AvailabilityContextProvider>
+                                        <ExperienceContextProvider>
+                                            <RootNavigator />
+                                        </ExperienceContextProvider>
+                                </AvailabilityContextProvider>
+                            </ProfileContextProvider>
+                        </MessagerContextProvider>
+                    </MatcherContextProvider>
                 </AuthContextProvider>
             </PortalProvider>
         </Provider>

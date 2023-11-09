@@ -4,7 +4,7 @@ import { useAuth } from "../../auth/authContext";
 import { Database } from "../../../database.types";
 import { usePortal } from "@gorhom/portal";
 import { FullWindowOverlay } from "react-native-screens";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import { Animated, Dimensions, StyleSheet, Text, View } from "react-native";
 import { RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
 import { Portal } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -83,9 +83,44 @@ function matcherQueueReducer(state: MatcherQueueState, action: MatcherQueueActio
     return state
 }
 
+export function NewMatchPopup({ close, match_id }){
+    const duration = 4000
+    const animatedOpacity = useRef(new Animated.Value(1)).current
+
+    function startFadeOut(){
+        Animated.timing(animatedOpacity, {
+            toValue: 0,
+            delay: duration/2,
+            duration: duration/2,
+            useNativeDriver: true,
+        }).start();
+
+        return setTimeout(close, duration)
+    }
+
+    useEffect(()=>{
+        const timeout = startFadeOut()
+        return ()=>{ clearTimeout(timeout) }
+    },[])
+
+    return( 
+        <SafeAreaProvider>
+            <Animated.View style={{
+                height: SCREEN_HEIGHT,
+                width: SCREEN_WIDTH,
+                backgroundColor: 'green',
+                opacity: animatedOpacity,
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}>
+                <Text>match_id: { match_id }</Text>
+            </Animated.View>
+        </SafeAreaProvider>
+    )
+}
+
 export function MatcherContextStateProvider({ children }){
     const { user } = useAuth()
-    const portal = usePortal()
 
     const [matcherQueue, dispatchMatcheQueue] = useReducer<MatcherQueueReducer>(matcherQueueReducer, {
         index: 0,
@@ -93,7 +128,7 @@ export function MatcherContextStateProvider({ children }){
         profiles: {},
     })
 
-    const [showPopup, setShowPopup] = useState<ReactNode>(null)
+    const [newMatchId, setNewMatchId] = useState<string>(null)
 
     useEffect(()=>{
         if(!user?.id){ return }
@@ -173,20 +208,7 @@ export function MatcherContextStateProvider({ children }){
                         return 
                     }
 
-                    setShowPopup(()=>
-                        <SafeAreaProvider>
-                            <View style={{
-                                height: SCREEN_HEIGHT,
-                                width: SCREEN_WIDTH,
-                                backgroundColor: 'green',
-                            }}>
-                                <Text>match_id: { match_id }</Text>
-                            </View>
-                        </SafeAreaProvider>
-                    )
-
-                    setTimeout(()=>setShowPopup(null), 2000)
-
+                    setNewMatchId(match_id)
                 }
             ).subscribe()
     }
@@ -194,11 +216,15 @@ export function MatcherContextStateProvider({ children }){
     const value = {
         dispatchMatcheQueue,
         matcherQueue,
+        newMatchId,
     }
 
     return <matcherStateContext.Provider value={value}>
         <Portal>
-            {showPopup}
+            {newMatchId && <NewMatchPopup 
+                close={()=>setNewMatchId(null)}
+                match_id={newMatchId}
+            />}
         </Portal>
         { children }
     </matcherStateContext.Provider>
@@ -243,7 +269,8 @@ function MatcherContextInterfaceProvider({ children }){
     const value = {
         like,
         pass,
-        selectQueue
+        selectQueue,
+        newMatchId: matcher.newMatchId,
     }
 
     return <matcherContext.Provider value={value}>

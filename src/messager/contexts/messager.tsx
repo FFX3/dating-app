@@ -5,6 +5,7 @@ import { useAuth } from "../../auth/authContext";
 import { get_profile_image_url, supabase } from "../../utils/supabase";
 import { useRealtime } from "../../utils/RealtimeContext";
 import { RealtimePostgresInsertPayload } from "@supabase/supabase-js";
+import { useMatcher } from "../../matcher/contexts/matcher";
 
 export type PublicProfile = {
     id: string;
@@ -109,7 +110,15 @@ export function useMessager(){
 
 export function MessagerContextProvider({ children }){
     const { user } = useAuth()
+    const { newMatchId } = useMatcher()
     const [messager, dispatchMessager] = useReducer<MessagerReducer>(messageReducer, {})
+
+    console.log(newMatchId)
+
+    useEffect(()=>{
+        if(!newMatchId){ return }
+        fetchNewMatchContact(newMatchId)
+    },[newMatchId])
 
     useEffect(()=>{
         if(!user?.id) return;
@@ -118,11 +127,42 @@ export function MessagerContextProvider({ children }){
         subsribeToMessageStream()
     },[user?.id])
 
+    async function fetchNewMatchContact(match_id: string){
+        const { data, error } = await supabase
+            .from('contacts')
+            .select()
+            .eq('match_id', match_id)
+            .single()
+
+        if(error){ console.error(error) }
+        
+        const gallery = []
+
+        const { image_ids, id, name, sex, bio } = data
+        if(image_ids){
+            for (let i=0; i<image_ids.length; i++){
+                gallery
+                    .push(await get_profile_image_url(image_ids[i], data.profile_id))
+            }
+        }
+
+        dispatchMessager({
+            type: 'add_contact',
+            payload: { profile: {
+                id,
+                name,
+                sex,
+                bio,
+                gallery,
+            }, }
+        })
+    }
+
     function subsribeToMessageStream(){
         supabase.channel('received-messages')
             .on('postgres_changes',
                 {
-                  event: '*',
+                  event: 'INSERT',
                   schema: 'public',
                   table: 'messages',
                 },
@@ -159,7 +199,7 @@ export function MessagerContextProvider({ children }){
             if(image_ids){
                 for (let i=0; i<image_ids.length; i++){
                     gallery
-                        .push(get_profile_image_url(image_ids[i], row.profile_id))
+                        .push(await get_profile_image_url(image_ids[i], row.profile_id))
                 }
             }
 
