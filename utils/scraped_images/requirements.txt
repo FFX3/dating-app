@@ -1,0 +1,3 @@
+Pillow
+request
+google_images_download
