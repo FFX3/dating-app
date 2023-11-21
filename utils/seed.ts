@@ -3,14 +3,16 @@ import { load } from "https://deno.land/std@0.207.0/dotenv/mod.ts";
 const env = await load();
 import { QueryArrayResult } from "https://deno.land/x/postgres@v0.17.0/query/query.ts";
 
-import { mod as createProfiles } from "./scripts/create_profiles/index.ts"
+import { createProfileMockups } from "./scripts/create_mockup_profiles/index.ts"
+import { createProfiles } from "./scripts/create_profiles/index.ts"
+import { setUpProfilesForMockup } from './scripts/onboard_profiles_with_images_for_mockup/index.ts'
 
 const DATABASE_URL = env['DATABASE_URL']
 
 const client = new Client(DATABASE_URL)
 
 export type Mod = {
-    path: string,
+    path?: string,
     input?: (result: QueryArrayResult|undefined, transaction: Transaction)=>Promise<string[]>
 }
 const moduleList:Mod[] = [
@@ -20,7 +22,12 @@ const moduleList:Mod[] = [
     {
         path: 'create_users',
     },
-    createProfiles,
+    {
+        path: 'create_experiences',
+    },
+    //createProfiles,
+    createProfileMockups,
+    setUpProfilesForMockup,
 ]
 
 type Instruction = {
@@ -31,6 +38,7 @@ type Instruction = {
 
 function buildModual(path: string){
     const fullPath = "scripts/" + path
+
     const scripts: Instruction[] = []
     for(const dirEntry of Deno.readDirSync(fullPath)) {
         if(dirEntry.isFile && dirEntry.name.endsWith('.sql')) {
@@ -81,12 +89,17 @@ let previousResult: QueryArrayResult | undefined
 const transaction = client.createTransaction("seed");
 await transaction.begin()
 for (const modInstruction of moduleList) {
-    const mod = buildModual(modInstruction.path)
+    let mod = null
+    if(modInstruction.path)
+        mod = buildModual(modInstruction.path)
     let input
     if( modInstruction.input){
         input = await modInstruction.input(previousResult, transaction)
     }
-    previousResult = await excuteMod(mod, input)
+    if(mod)
+        previousResult = await excuteMod(mod, input)
 }
-transaction.rollback()
+
+//transaction.rollback()
+transaction.commit()
 

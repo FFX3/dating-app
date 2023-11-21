@@ -22,9 +22,6 @@ for (const item of femaleImagesDir) {
     menPictures.push(await readAll(f))
 }
 
-//const maleImagesDir = Deno.readDirSync(imageDir + 'male')
-//const femaleImagesDir = Deno.readDirSync(imageDir + 'female')
-
 async function addProfileImages(ids: string[], transaction: Transaction){
     //TODO server should do most of this in a rpc or edge function
     const query =`
@@ -74,7 +71,8 @@ async function input(result: QueryArrayResult|undefined, transaction: Transactio
     return uuids
 }
 
-export const mod: Mod = {
+export const createProfiles: Mod = {
     path: 'create_profiles',
     input,
 }
+
