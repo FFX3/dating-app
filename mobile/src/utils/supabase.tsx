@@ -70,6 +70,7 @@ async function get_profile_image_url(id: string, user_id=null) {
         const user_response = await supabase.auth.getUser()
         user_id = user_response.data.user.id
     }
+    console.log('user_id', user_id, 'image_id', id)
     const { data: url, error } = await supabase
         .storage
         .from('profiles')

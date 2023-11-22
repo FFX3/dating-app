@@ -12,7 +12,11 @@ async function input(_result: QueryArrayResult|undefined, transaction: Transacti
         join profile_images pi
             on pi.profile_id = p.user_id
     `)
-    result.rows.flat().forEach((id)=>{
+
+    const idsToOnboard = result.rows.flat()
+
+
+    idsToOnboard.forEach((id)=>{
         console.log(id)
         transaction.queryArray(`
             update profiles
@@ -33,6 +37,7 @@ async function input(_result: QueryArrayResult|undefined, transaction: Transacti
             where user_id = '${id}'
         `)
     })
+
 
     return ['']
 }

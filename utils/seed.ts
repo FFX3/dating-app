@@ -23,11 +23,20 @@ const moduleList:Mod[] = [
         path: 'create_users',
     },
     {
+        path: 'create_test_user',
+    },
+    {
         path: 'create_experiences',
     },
     //createProfiles,
     createProfileMockups,
     setUpProfilesForMockup,
+    {
+        path: 'all_users_like_all_experiences',
+    },
+    {
+        path: 'run_matcher',
+    }
 ]
 
 type Instruction = {

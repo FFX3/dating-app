@@ -678,9 +678,16 @@ export interface Database {
       }
       like: {
         Args: {
-          _profile_id: string
+          profile_id: string
         }
-        Returns: undefined
+        Returns: {
+          created_at: string
+          id: string
+          liked: string[] | null
+          members: string[]
+          passed: string[] | null
+          seen_by: string[] | null
+        }[]
       }
       pass: {
         Args: {

@@ -115,7 +115,7 @@ export function MatcherContextStateProvider({ children }){
             if(image_ids){
                 for (let k=0; k<image_ids.length; k++){
                     gallery
-                        .push(await get_profile_image_url(image_ids[i], row.profile_id))
+                        .push(await get_profile_image_url(image_ids[k], row.profile_id))
                 }
             }
             newQueue.push({
@@ -213,9 +213,9 @@ function MatcherContextInterfaceProvider({ children }){
     function like() {
         const profile = selectQueue()[0]
         matcher.dispatchMatcheQueue({ type: 'like' })
-        console.log(profile.name)
+        console.log(profile)
         supabase.rpc('like', {
-            _profile_id: profile.id
+            profile_id: profile.id
         }).then(({ error })=>{
             if(error){
                 console.error(error)
